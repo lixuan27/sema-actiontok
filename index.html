@@ -3,687 +3,598 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SEMA · One motion language for every robot</title>
-<meta name="description" content="SEMA: an ordered, variable-length, cross-embodiment action tokenizer. The short prefix is a motion language every robot speaks.">
+<title>ActionTok · One action language for every robot</title>
+<meta name="description" content="ActionTok: an ordered, variable-length, cross-embodiment action tokenizer. The short prefix is an action language every robot speaks.">
 <style>
 :root{
-  --paper:#EFEDE4; --paper2:#E4E1D5; --card:#F8F7F2; --ink:#1F211C; --ink2:#5A5C52; --ink3:#93958A;
-  --rule:#CFCCBD; --line:#B9B6A6;
-  --sage:#77896F; --slate:#6C7F94; --clay:#B4846C;
-  --amber:#E39B23; --coral:#DD5A42; --teal:#1B9C90; --violet:#7660B4;
+  --paper:#F1EFE7; --paper2:#E7E4D9; --card:#FBFAF6; --wash:#EDEAE0;
+  --ink:#141510; --ink2:#3A3B32;
+  --rule:#171812; --hair:#C7C3B4;
+  --sage:#5C7150; --slate:#3F5C77; --clay:#9C6A4E;
+  --amber:#C8801A; --coral:#C93B22; --teal:#0E7E72; --violet:#5B44A0;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
-  --shadow:0 16px 38px -26px rgba(31,33,28,.6);
+  --shadow:0 20px 44px -26px rgba(20,21,16,.55);
 }
 @media (prefers-color-scheme:dark){:root{
-  --paper:#1C1E1A; --paper2:#161814; --card:#252822; --ink:#EDEADF; --ink2:#B0B2A6; --ink3:#7E8076;
-  --rule:#3A3D36; --line:#4C4F46;
-  --sage:#9BB093; --slate:#8DA2B8; --clay:#CC9C81;
-  --amber:#F0B44A; --coral:#F07254; --teal:#39C3B4; --violet:#9D86DA;
-  --shadow:0 20px 46px -28px rgba(0,0,0,.85);
+  --paper:#17190F; --paper2:#111309; --card:#22251A; --wash:#1E2116;
+  --ink:#F4F1E6; --ink2:#CFCCBE;
+  --rule:#F4F1E6; --hair:#454A3A;
+  --sage:#A7C097; --slate:#88ADCE; --clay:#D5A283;
+  --amber:#F0B646; --coral:#F27556; --teal:#43CDBC; --violet:#A68FE6;
+  --shadow:0 24px 50px -28px rgba(0,0,0,.85);
 }}
 :root[data-theme="dark"]{
-  --paper:#1C1E1A; --paper2:#161814; --card:#252822; --ink:#EDEADF; --ink2:#B0B2A6; --ink3:#7E8076;
-  --rule:#3A3D36; --line:#4C4F46;
-  --sage:#9BB093; --slate:#8DA2B8; --clay:#CC9C81;
-  --amber:#F0B44A; --coral:#F07254; --teal:#39C3B4; --violet:#9D86DA;
+  --paper:#17190F; --paper2:#111309; --card:#22251A; --wash:#1E2116;
+  --ink:#F4F1E6; --ink2:#CFCCBE; --rule:#F4F1E6; --hair:#454A3A;
+  --sage:#A7C097; --slate:#88ADCE; --clay:#D5A283;
+  --amber:#F0B646; --coral:#F27556; --teal:#43CDBC; --violet:#A68FE6;
 }
 :root[data-theme="light"]{
-  --paper:#EFEDE4; --paper2:#E4E1D5; --card:#F8F7F2; --ink:#1F211C; --ink2:#5A5C52; --ink3:#93958A;
-  --rule:#CFCCBD; --line:#B9B6A6;
-  --sage:#77896F; --slate:#6C7F94; --clay:#B4846C;
-  --amber:#E39B23; --coral:#DD5A42; --teal:#1B9C90; --violet:#7660B4;
+  --paper:#F1EFE7; --paper2:#E7E4D9; --card:#FBFAF6; --wash:#EDEAE0;
+  --ink:#141510; --ink2:#3A3B32; --rule:#171812; --hair:#C7C3B4;
+  --sage:#5C7150; --slate:#3F5C77; --clay:#9C6A4E;
+  --amber:#C8801A; --coral:#C93B22; --teal:#0E7E72; --violet:#5B44A0;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.5;
-  -webkit-font-smoothing:antialiased;overflow:hidden;font-variant-numeric:oldstyle-nums}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:22px;line-height:1.42;font-weight:600;-webkit-font-smoothing:antialiased;overflow:hidden}
 .deck{display:flex;height:100vh}
 
 /* rail */
-.rail{width:58px;flex:0 0 58px;border-right:1px solid var(--rule);background:var(--paper2);
+.rail{width:64px;flex:0 0 64px;border-right:2px solid var(--rule);background:var(--paper2);
   display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:16px}
-.logo{writing-mode:vertical-rl;font-size:14px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink2)}
-.dots{display:flex;flex-direction:column;gap:10px;margin:auto 0}
-.dot{all:unset;width:8px;height:8px;border-radius:50%;border:1px solid var(--line);cursor:pointer;
-  position:relative;transition:transform .25s,background .25s,border-color .25s}
-.dot:hover{transform:scale(1.4);border-color:var(--teal)}
-.dot:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
-.dot[aria-current="true"]{background:var(--coral);border-color:var(--coral);transform:scale(1.35)}
-.dot b{position:absolute;left:20px;top:-6px;white-space:nowrap;font-size:12px;font-weight:400;
-  font-style:italic;color:var(--ink2);background:var(--card);border:1px solid var(--rule);
-  padding:2px 9px;border-radius:2px;opacity:0;pointer-events:none;transition:opacity .18s}
+.logo{writing-mode:vertical-rl;font-size:17px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;color:var(--ink)}
+.dots{display:flex;flex-direction:column;gap:12px;margin:auto 0}
+.dot{all:unset;width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);cursor:pointer;
+  position:relative;transition:transform .22s,background .22s}
+.dot:hover{transform:scale(1.35)}
+.dot:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+.dot[aria-current="true"]{background:var(--coral);border-color:var(--coral);transform:scale(1.3)}
+.dot b{position:absolute;left:22px;top:-8px;white-space:nowrap;font-size:15px;font-weight:800;color:var(--card);
+  background:var(--ink);padding:4px 11px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .16s}
 .dot:hover b{opacity:1}
-.gh{all:unset;cursor:pointer;writing-mode:vertical-rl;font-size:10px;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--ink3);border:1px solid var(--rule);padding:7px 4px;border-radius:2px}
-.gh:hover{color:var(--ink);border-color:var(--teal)}
+.gh{all:unset;cursor:pointer;writing-mode:vertical-rl;font-size:13px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink);border:2px solid var(--rule);padding:9px 5px;border-radius:4px}
+.gh:hover{background:var(--ink);color:var(--paper)}
 
 /* stage */
 .stage{flex:1;position:relative;overflow:hidden}
-.s{position:absolute;inset:0;padding:44px 58px 58px;display:flex;flex-direction:column;overflow-y:auto;
-  opacity:0;visibility:hidden;transform:translateY(14px);
-  transition:opacity .45s ease,transform .45s ease,visibility .45s}
+.s{position:absolute;inset:0;padding:40px 60px 60px;display:flex;flex-direction:column;overflow-y:auto;
+  opacity:0;visibility:hidden;transform:translateY(16px);transition:opacity .42s ease,transform .42s ease,visibility .42s}
 .s[data-on="1"]{opacity:1;visibility:visible;transform:none}
-.bar{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--coral);transition:width .45s}
-.pg{position:absolute;right:22px;bottom:14px;display:flex;gap:8px;align-items:center;z-index:4}
-.pg button{all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;
-  border:1px solid var(--rule);color:var(--ink2);background:var(--card);font-size:14px}
-.pg button:hover{border-color:var(--teal);color:var(--ink)}
-.pg .c{font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.bar{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--coral);transition:width .42s}
+.pg{position:absolute;right:24px;bottom:16px;display:flex;gap:10px;align-items:center;z-index:4}
+.pg button{all:unset;cursor:pointer;width:38px;height:38px;display:grid;place-items:center;border-radius:50%;
+  border:2px solid var(--rule);color:var(--ink);background:var(--card);font-size:19px;font-weight:800}
+.pg button:hover{background:var(--ink);color:var(--paper)}
+.pg .c{font-size:16px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 
-/* reveal */
-.s>*{opacity:0;transform:translateY(12px)}
-.s[data-on="1"]>*{animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards}
-.s[data-on="1"]>*:nth-child(2){animation-delay:.10s}
-.s[data-on="1"]>*:nth-child(3){animation-delay:.20s}
+.s>*{opacity:0;transform:translateY(14px)}
+.s[data-on="1"]>*{animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards}
+.s[data-on="1"]>*:nth-child(2){animation-delay:.09s}
+.s[data-on="1"]>*:nth-child(3){animation-delay:.18s}
+.s[data-on="1"]>*:nth-child(4){animation-delay:.27s}
 @keyframes rise{to{opacity:1;transform:none}}
 
 /* type */
-.lab{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--coral);margin:0 0 10px}
-h1{font-weight:400;font-size:clamp(32px,3.5vw,54px);line-height:1.04;margin:0 0 16px;
-  letter-spacing:-.012em;text-wrap:balance}
-h2{font-weight:400;font-size:clamp(23px,2.3vw,34px);line-height:1.1;margin:0 0 8px;
-  letter-spacing:-.01em;text-wrap:balance}
-h2 i{font-style:italic;color:var(--coral)}
-.sub{color:var(--ink2);max-width:64ch;margin:0;font-size:16px;font-style:italic}
-.sub b{font-style:normal;font-weight:600;color:var(--ink)}
-.fig{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.lab{font-size:17px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--coral);margin:0 0 14px}
+h1{font-weight:800;font-size:clamp(46px,5.2vw,84px);line-height:1.0;margin:0 0 20px;letter-spacing:-.02em;
+  text-wrap:balance;color:var(--ink)}
+h2{font-weight:800;font-size:clamp(34px,3.4vw,54px);line-height:1.04;margin:0 0 12px;letter-spacing:-.015em;
+  text-wrap:balance;color:var(--ink)}
+h2 .q{color:var(--coral)}
+.sub{color:var(--ink);max-width:24ch;font-size:clamp(24px,2vw,32px);font-weight:700;line-height:1.24;margin:0}
+.sub.w{max-width:34ch}
+.sub .hi{color:var(--teal)}
+.sub .hc{color:var(--coral)}
+.fig{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:12px;margin-top:14px}
 svg{width:100%;height:auto;display:block;overflow:visible}
-.cap{font-size:12.5px;font-style:italic;color:var(--ink3);text-align:center;margin:6px 0 0}
-.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-style:italic;color:var(--ink2);
-  border:1px solid var(--rule);border-radius:20px;padding:4px 12px;background:var(--card)}
-.chip i{width:7px;height:7px;border-radius:50%;display:block}
+.cap{font-size:18px;font-weight:700;color:var(--ink);text-align:center;margin:2px 0 0}
+.cap .hc{color:var(--coral)} .cap .hi{color:var(--teal)}
+.row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:9px;font-size:18px;font-weight:800;color:var(--ink);
+  border:2px solid var(--rule);border-radius:30px;padding:7px 16px;background:var(--card)}
+.chip i{width:12px;height:12px;border-radius:50%;display:block}
 
-/* svg language */
-svg text{font-family:var(--serif);fill:var(--ink)}
-.n{font-size:13px}
-.m{font-size:10.5px;fill:var(--ink2);font-style:italic}
-.k{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;fill:var(--ink3)}
-.bx{fill:var(--card);stroke:var(--line);stroke-width:1.1}
-.bx.sage{stroke:var(--sage)} .bx.slate{stroke:var(--slate)} .bx.teal{stroke:var(--teal)}
-.bx.amber{stroke:var(--amber)} .bx.coral{stroke:var(--coral)} .bx.violet{stroke:var(--violet)}
-.tint-teal{fill:var(--teal);opacity:.08} .tint-amber{fill:var(--amber);opacity:.1}
-.tint-coral{fill:var(--coral);opacity:.08} .tint-slate{fill:var(--slate);opacity:.08}
-.w{stroke:var(--line);stroke-width:1.2;fill:none;marker-end:url(#hd)}
-.w.teal{stroke:var(--teal);stroke-width:1.7;marker-end:url(#ht)}
-.w.coral{stroke:var(--coral);stroke-width:1.7;marker-end:url(#hc)}
-.grp{opacity:0;transform:translateY(10px);transition:opacity .55s ease,transform .55s ease}
-.grp.on{opacity:1;transform:none}
-.breathe{animation:br 2.8s ease-in-out infinite}
-@keyframes br{0%,100%{opacity:.4}50%{opacity:1}}
+/* svg language — all bold, near-black */
+svg text{font-family:var(--serif);fill:var(--ink);font-weight:700}
+.tt{font-size:20px;font-weight:800}
+.td{font-size:16px;font-weight:700}
+.tk{font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.bx{fill:var(--card);stroke:var(--rule);stroke-width:2}
+.bx.sage{stroke:var(--sage);stroke-width:3} .bx.slate{stroke:var(--slate);stroke-width:3}
+.bx.teal{stroke:var(--teal);stroke-width:3} .bx.amber{stroke:var(--amber);stroke-width:3}
+.bx.coral{stroke:var(--coral);stroke-width:3} .bx.violet{stroke:var(--violet);stroke-width:3}
+.fill-teal{fill:var(--teal)} .fill-coral{fill:var(--coral)} .fill-amber{fill:var(--amber)}
+.fill-slate{fill:var(--slate)} .fill-violet{fill:var(--violet)} .fill-sage{fill:var(--sage)}
+.wash-teal{fill:var(--teal);opacity:.12} .wash-amber{fill:var(--amber);opacity:.14}
+.wash-coral{fill:var(--coral);opacity:.1} .wash-slate{fill:var(--slate);opacity:.1}
+.w{stroke:var(--rule);stroke-width:2.4;fill:none;marker-end:url(#hd)}
+.w.teal{stroke:var(--teal);stroke-width:3;marker-end:url(#ht)}
+.w.coral{stroke:var(--coral);stroke-width:3;marker-end:url(#hc)}
+.w.dash{stroke-dasharray:6 6}
+.grp{opacity:.16;transition:opacity .5s ease}
+.grp.on{opacity:1}
+.grp.focus .bx{stroke-width:4;filter:drop-shadow(0 0 0 var(--amber))}
+.badge{fill:var(--ink)} .badge-t{fill:var(--paper);font-size:19px;font-weight:800}
+.grp.focus .badge{fill:var(--coral)}
+.breathe{animation:br 2.6s ease-in-out infinite}
+@keyframes br{0%,100%{opacity:.45}50%{opacity:1}}
 
-/* steps */
-.steps{display:flex;gap:7px;justify-content:center;align-items:center;margin-top:12px}
-.steps button{all:unset;cursor:pointer;font-size:13px;width:30px;height:30px;display:grid;place-items:center;
-  border:1px solid var(--rule);border-radius:50%;color:var(--ink3);background:var(--card);transition:all .22s}
-.steps button:hover{border-color:var(--teal);color:var(--ink)}
-.steps button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.steps button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.steps .rp{width:auto;border-radius:16px;padding:0 14px;font-style:italic;font-size:12.5px}
-.scap{text-align:center;margin:12px auto 0;font-size:15px;color:var(--ink2);max-width:62ch;min-height:24px}
-.scap b{color:var(--ink);font-weight:600}
-.scap i{color:var(--coral);font-style:normal}
+/* stepper */
+.steps{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+.steps button{all:unset;cursor:pointer;font-size:18px;font-weight:800;width:42px;height:42px;display:grid;
+  place-items:center;border:2px solid var(--rule);border-radius:50%;color:var(--ink);background:var(--card);transition:all .18s}
+.steps button:hover{background:var(--wash)}
+.steps button:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.steps button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.steps .rp{width:auto;border-radius:22px;padding:0 18px;font-size:17px}
+.scap{text-align:center;margin:14px auto 0;font-size:clamp(21px,1.8vw,27px);font-weight:800;color:var(--ink);
+  max-width:40ch;min-height:34px}
+.scap .n{color:var(--coral)}
 
 /* prefix ruler */
-.cells{display:flex;gap:6px;max-width:520px;margin:0 auto 14px}
-.cell{flex:1;height:46px;border:1px solid var(--line);border-radius:4px;background:var(--card);
-  display:grid;place-items:center;cursor:pointer;font-size:12.5px;color:var(--ink3);
-  transition:all .22s;font-style:italic}
-.cell:hover{transform:translateY(-3px)}
-.cell:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-.cell[data-live="1"]{background:var(--sage);border-color:var(--sage);color:var(--card);font-style:normal}
+.cells{display:flex;gap:8px;max-width:640px;margin:0 auto 16px;width:100%}
+.cell{flex:1;height:60px;border:2px solid var(--rule);border-radius:6px;background:var(--card);
+  display:grid;place-items:center;cursor:pointer;font-size:17px;font-weight:800;color:var(--ink);transition:all .2s}
+.cell:hover{transform:translateY(-4px)}
+.cell:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.cell[data-live="1"]{background:var(--sage);border-color:var(--sage);color:var(--paper)}
 .cell[data-role="sem"][data-live="1"]{background:var(--teal);border-color:var(--teal)}
 .cell[data-role="stop"][data-live="1"]{background:var(--coral);border-color:var(--coral)}
-.cell[data-live="0"]{opacity:.4}
-canvas{display:block;width:100%;max-width:660px;height:auto;margin:0 auto}
-.ro{display:flex;gap:26px;justify-content:center;margin-top:8px;font-size:13.5px;color:var(--ink2);
+.cell[data-live="0"]{opacity:.34}
+canvas{display:block;width:100%;max-width:760px;height:auto;margin:0 auto}
+.ro{display:flex;gap:34px;justify-content:center;margin-top:12px;font-size:22px;font-weight:800;color:var(--ink);
   font-variant-numeric:tabular-nums}
-.ro b{color:var(--ink);font-weight:600}
+.ro b{color:var(--coral)}
 
-/* scorecard */
-.sc{width:100%;border-collapse:collapse;font-size:14px;max-width:940px;margin:0 auto}
-.sc th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:400;
-  padding:10px 8px;text-align:center;vertical-align:bottom}
-.sc th:first-child{text-align:left}
-.sc td{padding:11px 8px;border-top:1px solid var(--rule);text-align:center;color:var(--ink2)}
-.sc td:first-child{text-align:left;color:var(--ink)}
-.sc tr:hover td{background:rgba(27,156,144,.07)}
-.sc tr.us td{background:rgba(227,155,35,.15);border-top-color:var(--amber);color:var(--ink)}
-.sc .o{display:inline-block;width:13px;height:13px;border-radius:50%;border:1.4px solid var(--ink3)}
-.sc .o.y{background:var(--teal);border-color:var(--teal)}
-.sc .o.h{background:linear-gradient(90deg,var(--amber) 50%,transparent 50%);border-color:var(--amber)}
-.sc .why{text-align:left;font-style:italic;font-size:13px}
+/* comparison */
+.cmp{width:100%;max-width:1000px;margin:0 auto;border-collapse:separate;border-spacing:0 8px}
+.cmp th{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);
+  padding:6px 10px;text-align:center;vertical-align:bottom}
+.cmp th:first-child{text-align:left}
+.cmp td{padding:14px 10px;text-align:center;background:var(--card);border-top:2px solid var(--hair);
+  border-bottom:2px solid var(--hair);font-size:19px;font-weight:800;color:var(--ink)}
+.cmp td:first-child{text-align:left;border-left:2px solid var(--hair);border-radius:6px 0 0 6px}
+.cmp td:last-child{text-align:left;border-right:2px solid var(--hair);border-radius:0 6px 6px 0;font-size:17px}
+.cmp tr.us td{background:var(--wash);border-color:var(--amber);color:var(--ink)}
+.cmp tr.us td:first-child{border-left:4px solid var(--amber)}
+.yes{color:var(--teal)} .no{color:var(--hair)} .par{color:var(--amber)}
+.mark{font-size:24px;font-weight:900}
 
 /* bars */
-.bars{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:18px;width:100%}
-.br{display:grid;grid-template-columns:1fr 62px;gap:16px;align-items:center}
-.br .l{font-size:14.5px;color:var(--ink2)}
-.tk{height:9px;background:var(--paper2);border:1px solid var(--rule);border-radius:5px;overflow:hidden;margin-top:7px}
-.fl{height:100%;width:0;background:var(--coral);transition:width 1.15s cubic-bezier(.22,.7,.2,1)}
+.bars{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px;width:100%}
+.br{display:grid;grid-template-columns:1fr 92px;gap:20px;align-items:center}
+.br .l{font-size:21px;font-weight:700;color:var(--ink)}
+.tk2{height:14px;background:var(--paper2);border:2px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:8px}
+.fl{height:100%;width:0;background:var(--coral);transition:width 1.1s cubic-bezier(.22,.7,.2,1)}
 .fl.g{background:var(--teal)}
-.br .v{font-size:17px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.br .v{font-size:30px;font-weight:800;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* positioning map */
+.mapwrap{max-width:820px;margin:0 auto;width:100%}
 
 /* roadmap */
-.gt{display:flex;flex-direction:column;gap:3px;max-width:940px;margin:0 auto;width:100%}
-.gr{display:grid;grid-template-columns:104px 1fr;gap:14px;align-items:center;cursor:pointer;
-  padding:5px 6px;border-radius:4px}
-.gr:hover{background:rgba(27,156,144,.08)}
-.gr:focus-visible{outline:2px solid var(--teal)}
-.gr .p{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
-.trk{position:relative;height:32px;border-left:1px solid var(--rule)}
-.blk{position:absolute;top:3px;height:26px;border-radius:3px;display:flex;align-items:center;padding:0 12px;
-  font-size:13px;color:var(--card);white-space:nowrap;transform-origin:left center;transform:scaleX(0);
-  animation:grow .75s cubic-bezier(.2,.7,.2,1) forwards}
+.gt{display:flex;flex-direction:column;gap:6px;max-width:1000px;margin:0 auto;width:100%}
+.gr{display:grid;grid-template-columns:132px 1fr;gap:16px;align-items:center;cursor:pointer;padding:6px;border-radius:6px}
+.gr:hover{background:var(--wash)}
+.gr:focus-visible{outline:3px solid var(--coral)}
+.gr .p{font-size:17px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink)}
+.trk{position:relative;height:40px;border-left:3px solid var(--rule)}
+.blk{position:absolute;top:3px;height:34px;border-radius:5px;display:flex;align-items:center;padding:0 16px;
+  font-size:18px;font-weight:800;color:var(--paper);white-space:nowrap;transform-origin:left center;transform:scaleX(0);
+  animation:grow .7s cubic-bezier(.2,.7,.2,1) forwards}
 @keyframes grow{to{transform:scaleX(1)}}
-.blk.done{background:var(--sage)} .blk.now{background:var(--coral)} .blk.next{background:var(--slate);opacity:.5}
-.gr[aria-expanded="true"] .blk{box-shadow:0 0 0 2px var(--amber)}
-.gd{max-width:940px;margin:16px auto 0;background:var(--card);border:1px solid var(--rule);
-  border-left:3px solid var(--amber);border-radius:5px;padding:15px 18px;font-size:14px;color:var(--ink2)}
-.gd .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.blk.done{background:var(--sage)} .blk.now{background:var(--coral)} .blk.next{background:var(--slate)}
+.gr[aria-expanded="true"] .blk{box-shadow:0 0 0 3px var(--amber)}
+.gd{max-width:1000px;margin:18px auto 0;background:var(--card);border:2px solid var(--rule);
+  border-left:5px solid var(--amber);border-radius:6px;padding:18px 22px}
+.gd .two{display:grid;grid-template-columns:1fr 1fr;gap:26px}
 @media (max-width:820px){.gd .two{grid-template-columns:1fr}}
-.gd h4{margin:0 0 6px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);font-weight:400}
-.gd ul{margin:0;padding-left:16px} .gd li{margin-bottom:4px}
-.gd b{color:var(--ink);font-weight:600}
+.gd h4{margin:0 0 8px;font-size:16px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--coral)}
+.gd ul{margin:0;padding-left:22px} .gd li{margin-bottom:6px;font-size:19px;font-weight:700;color:var(--ink)}
 
 /* ladder */
-.ld{display:flex;flex-direction:column;gap:7px;max-width:800px;margin:0 auto;width:100%}
-.rg{display:grid;grid-template-columns:34px 1fr auto;gap:14px;align-items:center;padding:11px 14px;
-  border:1px solid var(--rule);border-radius:5px;background:var(--card);font-size:14.5px;color:var(--ink2)}
-.rg .lv{font-size:13px;color:var(--ink3);font-style:italic}
-.rg b{color:var(--ink);font-weight:600}
-.rg.hit{border-color:var(--teal);background:rgba(27,156,144,.09)}
+.ld{display:flex;flex-direction:column;gap:10px;max-width:900px;margin:0 auto;width:100%}
+.rg{display:grid;grid-template-columns:52px 1fr auto;gap:18px;align-items:center;padding:14px 18px;
+  border:2px solid var(--rule);border-radius:7px;background:var(--card);font-size:21px;font-weight:700;color:var(--ink)}
+.rg .lv{font-size:20px;font-weight:800;color:var(--ink)}
+.rg b{font-weight:800}
+.rg.hit{border-color:var(--teal);background:var(--wash)}
 .rg.hit .lv{color:var(--teal)}
-.rg.tgt{border-color:var(--amber);background:rgba(227,155,35,.12)}
+.rg.tgt{border-color:var(--amber)}
 .rg.tgt .lv{color:var(--amber)}
-.tg{font-size:10px;letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor;
-  border-radius:12px;padding:3px 9px}
-.tg.t{color:var(--teal)} .tg.a{color:var(--amber)} .tg.s{color:var(--ink3)}
-.close{text-align:center;font-size:clamp(18px,1.7vw,25px);line-height:1.35;margin:26px auto 0;max-width:34ch}
+.tg{font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border:2px solid currentColor;
+  border-radius:16px;padding:5px 13px}
+.tg.t{color:var(--teal)} .tg.a{color:var(--amber)} .tg.s{color:var(--ink)}
+.close{text-align:center;font-size:clamp(26px,2.4vw,38px);font-weight:800;line-height:1.3;margin:30px auto 0;
+  max-width:26ch;color:var(--ink)}
+.close .hc{color:var(--coral)}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
-  .s>*{opacity:1;transform:none}.blk{transform:none}.grp{opacity:1;transform:none}}
-@media (max-width:880px){
-  body{overflow:auto}.deck{flex-direction:column;height:auto}
-  .rail{width:100%;flex-direction:row;padding:10px}.logo{writing-mode:horizontal-tb}
+  .s>*{opacity:1;transform:none}.blk{transform:none}.grp{opacity:1}}
+@media (max-width:900px){
+  body{overflow:auto;font-size:20px}.deck{flex-direction:column;height:auto}
+  .rail{width:100%;flex-direction:row;padding:12px}.logo{writing-mode:horizontal-tb}
   .dots{flex-direction:row;margin:0 auto}.gh{writing-mode:horizontal-tb}
   .stage{overflow:visible}
-  .s{position:relative;inset:auto;opacity:1;visibility:visible;transform:none;padding:30px 20px;
-     border-bottom:1px solid var(--rule)}
-  .s>*{opacity:1;transform:none}
-  .pg{display:none}
+  .s{position:relative;inset:auto;opacity:1;visibility:visible;transform:none;padding:32px 20px;border-bottom:2px solid var(--rule)}
+  .s>*{opacity:1;transform:none}.pg{display:none}
 }
 </style>
 </head>
 <body>
 <div class="deck">
   <nav class="rail" aria-label="Sections">
-    <span class="logo">Sema</span>
+    <span class="logo">ActionTok</span>
     <div class="dots" id="dots"></div>
-    <button class="gh" id="theme" type="button">theme</button>
+    <button class="gh" id="theme" type="button">Theme</button>
   </nav>
   <main class="stage" id="stage">
 
-  <!-- 1 -->
+  <!-- 1 · HERO -->
   <section class="s" data-t="Thesis">
-    <div class="fig" style="gap:26px">
-      <div style="text-align:center;max-width:900px;margin:0 auto">
-        <p class="lab">Cross-embodiment action tokenizer</p>
-        <h1>One motion language.<br>Every robot speaks it.</h1>
-        <p class="sub" style="margin:0 auto;font-size:18px;max-width:48ch">
-          The short prefix of the code is shared across bodies. Extra tokens arrive only where precise
-          execution earns them.</p>
+    <div class="fig" style="gap:30px">
+      <div style="text-align:center;max-width:1000px;margin:0 auto">
+        <p class="lab">A cross-embodiment action tokenizer</p>
+        <h1>One action language.<br>Every robot speaks it.</h1>
+        <p class="sub w" style="margin:0 auto;text-align:center;color:var(--ink)">
+          The short prefix is shared across bodies. Extra tokens arrive only where the motion earns them.</p>
       </div>
-      <svg viewBox="0 0 920 176" aria-label="A code that begins with a shared intent token, adds refinement tokens, ends with a stop token, and decodes to three different robots.">
+      <svg viewBox="0 0 960 190" aria-label="A code that begins with a shared intent token, adds refinement tokens, ends with a stop token, and decodes to three different robots.">
         <defs>
-          <marker id="hd" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-            <path d="M0,0 L7,3.5 L0,7z" fill="var(--line)"/></marker>
-          <marker id="ht" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-            <path d="M0,0 L7,3.5 L0,7z" fill="var(--teal)"/></marker>
-          <marker id="hc" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-            <path d="M0,0 L7,3.5 L0,7z" fill="var(--coral)"/></marker>
+          <marker id="hd" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="var(--rule)"/></marker>
+          <marker id="ht" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="var(--teal)"/></marker>
+          <marker id="hc" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="var(--coral)"/></marker>
         </defs>
-        <text class="k" x="126" y="30">One vocabulary</text>
-        <rect class="tint-teal" x="120" y="40" width="100" height="52" rx="7"/>
-        <rect class="bx teal" x="120" y="40" width="100" height="52" rx="7"/>
-        <text class="n" x="140" y="63" fill="var(--teal)">intent</text>
-        <text class="m" x="140" y="80">shared</text>
-        <rect class="bx" x="230" y="40" width="60" height="52" rx="7"/><text class="n" x="252" y="71">detail</text>
-        <rect class="bx" x="300" y="40" width="60" height="52" rx="7"/><text class="n" x="322" y="71">detail</text>
-        <rect class="tint-coral" x="370" y="40" width="86" height="52" rx="7"/>
-        <rect class="bx coral" x="370" y="40" width="86" height="52" rx="7"/>
-        <text class="n" x="392" y="63" fill="var(--coral)">stop</text>
-        <text class="m" x="382" y="80">learned</text>
-        <text class="m" x="232" y="112">refinement, only when the motion earns it</text>
-        <path class="w teal" d="M466 66 H540"/>
-        <text class="k" x="560" y="26">Every body</text>
+        <text class="tk fill-teal" x="120" y="34">One vocabulary</text>
+        <rect class="wash-teal" x="118" y="44" width="112" height="58" rx="8"/>
+        <rect class="bx teal" x="118" y="44" width="112" height="58" rx="8"/>
+        <text class="tt fill-teal" x="140" y="80">intent</text>
+        <rect class="bx" x="242" y="44" width="66" height="58" rx="8"/><text class="td" x="258" y="80">detail</text>
+        <rect class="bx" x="320" y="44" width="66" height="58" rx="8"/><text class="td" x="336" y="80">detail</text>
+        <rect class="wash-coral" x="398" y="44" width="96" height="58" rx="8"/>
+        <rect class="bx coral" x="398" y="44" width="96" height="58" rx="8"/>
+        <text class="tt fill-coral" x="416" y="80">stop</text>
+        <text class="td" x="250" y="128">only if the motion earns it</text>
+        <path class="w teal" d="M504 73 H576"/>
+        <text class="tk fill-slate" x="596" y="30">Every body</text>
         <g class="breathe">
-          <rect class="bx slate" x="560" y="34" width="180" height="30" rx="5"/><text class="n" x="576" y="54">seven degree arm</text>
-          <rect class="bx slate" x="560" y="70" width="180" height="30" rx="5"/><text class="n" x="576" y="90">bimanual rig</text>
-          <rect class="bx slate" x="560" y="106" width="180" height="30" rx="5"/><text class="n" x="576" y="126">dexterous hand</text>
+          <rect class="bx slate" x="596" y="38" width="196" height="34" rx="6"/><text class="td" x="614" y="61">seven-degree arm</text>
+          <rect class="bx slate" x="596" y="78" width="196" height="34" rx="6"/><text class="td" x="614" y="101">bimanual rig</text>
+          <rect class="bx slate" x="596" y="118" width="196" height="34" rx="6"/><text class="td" x="614" y="141">dexterous hand</text>
         </g>
-        <path class="w" d="M540 66 Q552 49 556 49"/><path class="w" d="M540 66 H556"/><path class="w" d="M540 66 Q552 121 556 121"/>
+        <path class="w" d="M576 73 Q588 55 592 55"/><path class="w" d="M576 73 H592"/><path class="w" d="M576 73 Q588 135 592 135"/>
       </svg>
       <div class="row">
-        <span class="chip"><i style="background:var(--sage)"></i>reproduction closed</span>
-        <span class="chip"><i style="background:var(--coral)"></i>method in build</span>
-        <span class="chip"><i style="background:var(--slate)"></i>dexterous frontier</span>
+        <span class="chip"><i style="background:var(--sage)"></i>Reproduction closed</span>
+        <span class="chip"><i style="background:var(--coral)"></i>Method in build</span>
+        <span class="chip"><i style="background:var(--slate)"></i>Dexterous frontier</span>
       </div>
     </div>
     <p class="cap">Use the arrow keys to walk through the argument.</p>
   </section>
 
-  <!-- 2 -->
-  <section class="s" data-t="The problem">
+  <!-- 2 · WHY -->
+  <section class="s" data-t="Why this">
     <div>
-      <p class="lab">The problem</p>
-      <h2>Every robot invents its own action space. <i>Where does the shared language live?</i></h2>
+      <p class="lab">Why this, why now</p>
+      <h2>Robot data is scattered across bodies. <span class="q">Where does the shared language live?</span></h2>
     </div>
-    <div class="fig">
-      <svg viewBox="0 0 920 292" aria-label="Today each robot has its own action space, tokenizer and policy, so nothing transfers. We want one encoder, one vocabulary and thin per body decoders.">
-        <text class="k" x="16" y="22">Today, three islands</text>
-        <g>
-          <rect class="bx slate" x="16" y="36" width="124" height="36" rx="5"/><text class="n" x="32" y="59">seven degree arm</text>
-          <rect class="bx" x="168" y="36" width="112" height="36" rx="5"/><text class="m" x="184" y="59">its own code</text>
-          <rect class="bx" x="308" y="36" width="120" height="36" rx="5"/><text class="m" x="324" y="59">its own policy</text>
-          <path class="w" d="M144 54 H164"/><path class="w" d="M284 54 H304"/>
-        </g>
-        <g>
-          <rect class="bx slate" x="16" y="106" width="124" height="36" rx="5"/><text class="n" x="32" y="129">bimanual rig</text>
-          <rect class="bx" x="168" y="106" width="112" height="36" rx="5"/><text class="m" x="184" y="129">its own code</text>
-          <rect class="bx" x="308" y="106" width="120" height="36" rx="5"/><text class="m" x="324" y="129">its own policy</text>
-          <path class="w" d="M144 124 H164"/><path class="w" d="M284 124 H304"/>
-        </g>
-        <g>
-          <rect class="bx slate" x="16" y="176" width="124" height="36" rx="5"/><text class="n" x="32" y="199">dexterous hand</text>
-          <rect class="bx" x="168" y="176" width="112" height="36" rx="5"/><text class="m" x="184" y="199">its own code</text>
-          <rect class="bx" x="308" y="176" width="120" height="36" rx="5"/><text class="m" x="324" y="199">its own policy</text>
-          <path class="w" d="M144 194 H164"/><path class="w" d="M284 194 H304"/>
-        </g>
-        <g stroke="var(--coral)" stroke-width="1.3" stroke-dasharray="4 4" fill="none">
-          <path d="M224 76 V102"/><path d="M224 146 V172"/>
-        </g>
-        <text class="m" x="234" y="94" fill="var(--coral)">each vocabulary stays private</text>
-        <text class="m" x="234" y="164" fill="var(--coral)">each policy starts from zero</text>
-
-        <rect class="tint-amber" x="500" y="30" width="404" height="196" rx="10"/>
-        <rect class="bx amber" x="500" y="30" width="404" height="196" rx="10"/>
-        <text class="k" x="520" y="56" fill="var(--amber)">What we build</text>
-        <rect class="bx slate" x="520" y="70" width="94" height="26" rx="4"/><text class="m" x="532" y="88">arm data</text>
-        <rect class="bx slate" x="520" y="102" width="94" height="26" rx="4"/><text class="m" x="532" y="120">rig data</text>
-        <rect class="bx slate" x="520" y="134" width="94" height="26" rx="4"/><text class="m" x="532" y="152">hand data</text>
-        <rect class="tint-teal" x="656" y="70" width="106" height="90" rx="7"/>
-        <rect class="bx teal" x="656" y="70" width="106" height="90" rx="7"/>
-        <text class="n" x="676" y="106" fill="var(--teal)">one shared</text>
-        <text class="n" x="676" y="124" fill="var(--teal)">encoder</text>
-        <path class="w teal" d="M618 83 Q638 83 652 108"/><path class="w teal" d="M618 115 H652"/>
-        <path class="w teal" d="M618 147 Q638 147 652 122"/>
-        <rect class="bx" x="796" y="70" width="90" height="90" rx="7"/>
-        <text class="n" x="812" y="106">body</text><text class="n" x="812" y="124">decoders</text>
-        <path class="w" d="M766 115 H792"/>
-        <text class="m" x="520" y="186">Trained together on mixed data, so the vocabulary belongs to the task rather than to a machine.</text>
-        <text class="m" x="520" y="208" fill="var(--teal)">The tokenizer becomes the alignment layer.</text>
-      </svg>
+    <div class="fig" style="gap:22px">
+      <div style="display:grid;grid-template-columns:1fr 1.15fr;gap:40px;align-items:center">
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <div><p class="lab" style="color:var(--teal);margin-bottom:6px">What we build</p>
+            <p class="sub w">An action tokenizer that is the <span class="hi">alignment layer</span>, not a codec: one vocabulary, trained jointly on mixed-robot data.</p></div>
+          <div><p class="lab" style="color:var(--amber);margin-bottom:6px">Why it matters</p>
+            <p class="sub w">A shared action language lets one policy pre-train across robots and reach a new body with a <span class="hc">tiny adapter</span>.</p></div>
+          <div><p class="lab" style="color:var(--coral);margin-bottom:6px">What is new</p>
+            <p class="sub w">Adaptive length together with a cross-body vocabulary: the corner nobody occupies.</p></div>
+        </div>
+        <div class="mapwrap">
+          <svg viewBox="0 0 560 470" aria-label="A positioning map. The horizontal axis runs from one body to many bodies. The vertical axis runs from fixed depth to adaptive length. Prior methods sit in three corners; ActionTok sits alone in the many-bodies, adaptive-length corner.">
+            <line x1="70" y1="40" x2="70" y2="410" stroke="var(--rule)" stroke-width="3"/>
+            <line x1="70" y1="410" x2="530" y2="410" stroke="var(--rule)" stroke-width="3"/>
+            <path d="M70 40 l-7 14 h14 z" class="fill-slate" fill="var(--rule)"/>
+            <path d="M530 410 l-14 -7 v14 z" fill="var(--rule)"/>
+            <text class="tk" x="12" y="30" transform="rotate(0)">Adaptive</text>
+            <text class="tk" x="18" y="405">Fixed</text>
+            <text class="tk" x="86" y="440">One body</text>
+            <text class="tk" x="392" y="440">Many bodies</text>
+            <text class="td" x="110" y="330" text-anchor="middle">binning</text>
+            <circle cx="110" cy="300" r="8" class="fill-slate"/>
+            <text class="td" x="150" y="288" text-anchor="middle">fixed VQ</text>
+            <circle cx="150" cy="258" r="8" class="fill-slate"/>
+            <text class="td fill-sage" x="150" y="150" text-anchor="middle">OAT (order)</text>
+            <circle cx="150" cy="170" r="8" class="fill-sage"/>
+            <text class="td fill-slate" x="405" y="300" text-anchor="middle">cross-body codec</text>
+            <circle cx="405" cy="270" r="8" class="fill-slate"/>
+            <rect class="wash-amber" x="330" y="70" width="196" height="120" rx="10"/>
+            <g class="breathe">
+              <circle cx="428" cy="128" r="15" class="fill-coral"/>
+              <circle cx="428" cy="128" r="26" fill="none" stroke="var(--coral)" stroke-width="3"/>
+            </g>
+            <text class="tt fill-coral" x="360" y="120">ActionTok</text>
+            <text class="td" x="360" y="164">alone in the corner</text>
+          </svg>
+        </div>
+      </div>
+      <p class="cap">Our position: build on ordered tokenization, then add a learned stop and a vocabulary that outlives the robot it trained on.</p>
     </div>
   </section>
 
-  <!-- 3 -->
-  <section class="s" data-t="Codec or alignment">
+  <!-- 3 · GUARANTEES -->
+  <section class="s" data-t="Four guarantees">
     <div>
-      <p class="lab">Framing</p>
-      <h2><i>What is a tokenizer for?</i> We answer: it is where bodies meet.</h2>
+      <p class="lab">What should an action token guarantee?</p>
+      <h2>Four promises, held at the same time.</h2>
     </div>
     <div class="fig">
-      <svg viewBox="0 0 920 280" aria-label="A codec is swapped into the action head at fine tuning time. An alignment layer lives inside pre training and carries mixed robot data.">
-        <rect x="10" y="12" width="404" height="256" rx="10" fill="none" stroke="var(--rule)" stroke-dasharray="5 5"/>
-        <text class="k" x="30" y="38">A codec, swapped in late</text>
-        <rect class="bx" x="30" y="54" width="150" height="38" rx="5"/><text class="n" x="48" y="78">expert actions</text>
-        <rect class="bx" x="30" y="112" width="150" height="38" rx="5"/><text class="n" x="48" y="136">discretize</text>
-        <rect class="bx" x="30" y="170" width="150" height="38" rx="5"/><text class="n" x="48" y="194">swap the head</text>
-        <path class="w" d="M105 92 V108"/><path class="w" d="M105 150 V166"/>
-        <rect class="tint-coral" x="216" y="100" width="176" height="88" rx="7"/>
-        <rect class="bx coral" x="216" y="100" width="176" height="88" rx="7"/>
-        <text class="n" x="236" y="130" fill="var(--coral)">fine tuning only</text>
-        <text class="m" x="236" y="152">one robot, fixed depth</text>
-        <text class="m" x="236" y="170">the latent stays private</text>
-        <path class="w coral" d="M186 189 Q206 189 214 160"/>
-        <text class="m" x="30" y="234" fill="var(--ink3)">Compression improves. Transfer stays out of reach.</text>
-
-        <rect class="tint-amber" x="436" y="12" width="474" height="256" rx="10"/>
-        <rect class="bx amber" x="436" y="12" width="474" height="256" rx="10"/>
-        <text class="k" x="456" y="38" fill="var(--amber)">An alignment layer, present from the start</text>
-        <rect class="bx slate" x="456" y="54" width="112" height="30" rx="4"/><text class="m" x="470" y="74">arm data</text>
-        <rect class="bx slate" x="456" y="92" width="112" height="30" rx="4"/><text class="m" x="470" y="112">rig data</text>
-        <rect class="bx slate" x="456" y="130" width="112" height="30" rx="4"/><text class="m" x="470" y="150">hand data</text>
-        <rect class="tint-teal" x="606" y="62" width="122" height="88" rx="7"/>
-        <rect class="bx teal" x="606" y="62" width="122" height="88" rx="7"/>
-        <text class="n" x="626" y="98" fill="var(--teal)">shared</text><text class="n" x="626" y="118" fill="var(--teal)">encoder</text>
-        <path class="w teal" d="M572 69 Q590 69 602 100"/><path class="w teal" d="M572 107 H602"/>
-        <path class="w teal" d="M572 145 Q590 145 602 114"/>
-        <rect class="bx" x="762" y="62" width="128" height="88" rx="7"/>
-        <text class="n" x="780" y="98">body decoders</text><text class="m" x="780" y="118">five percent of</text><text class="m" x="780" y="134">the parameters</text>
-        <path class="w" d="M732 107 H758"/>
-        <rect class="bx amber" x="606" y="180" width="284" height="60" rx="7"/>
-        <text class="n" x="626" y="206" fill="var(--amber)">policy pre training inside that space</text>
-        <text class="m" x="626" y="226">tokens are the action space from the first step</text>
-        <path class="w" d="M666 150 V176"/>
+      <svg viewBox="0 0 1000 240" aria-label="Four guarantees: shared vocabulary, semantic first, variable length, and total decodability.">
+        <g>
+          <rect class="wash-teal" x="10" y="20" width="235" height="200" rx="12"/>
+          <rect class="bx teal" x="10" y="20" width="235" height="200" rx="12"/>
+          <circle cx="46" cy="58" r="20" class="badge"/><text class="badge-t" x="40" y="65">1</text>
+          <text class="tt" x="82" y="66">Shared</text>
+          <text class="td" x="34" y="130">One vocabulary</text>
+          <text class="td" x="34" y="158">for every body.</text>
+        </g>
+        <g>
+          <rect class="wash-amber" x="264" y="20" width="235" height="200" rx="12"/>
+          <rect class="bx amber" x="264" y="20" width="235" height="200" rx="12"/>
+          <circle cx="300" cy="58" r="20" class="badge"/><text class="badge-t" x="294" y="65">2</text>
+          <text class="tt" x="336" y="66">Intent first</text>
+          <text class="td" x="288" y="130">The first token</text>
+          <text class="td" x="288" y="158">carries the gesture.</text>
+        </g>
+        <g>
+          <rect class="wash-coral" x="518" y="20" width="235" height="200" rx="12"/>
+          <rect class="bx coral" x="518" y="20" width="235" height="200" rx="12"/>
+          <circle cx="554" cy="58" r="20" class="badge"/><text class="badge-t" x="548" y="65">3</text>
+          <text class="tt" x="590" y="66">Adaptive</text>
+          <text class="td" x="542" y="130">Length follows</text>
+          <text class="td" x="542" y="158">the motion.</text>
+        </g>
+        <g>
+          <rect class="wash-slate" x="772" y="20" width="218" height="200" rx="12"/>
+          <rect class="bx violet" x="772" y="20" width="218" height="200" rx="12"/>
+          <circle cx="808" cy="58" r="20" class="badge"/><text class="badge-t" x="802" y="65">4</text>
+          <text class="tt" x="844" y="66">Legal</text>
+          <text class="td" x="796" y="130">Every prefix</text>
+          <text class="td" x="796" y="158">decodes in range.</text>
+        </g>
       </svg>
-      <p class="cap">Latency travels with every number we report: success rate beside tokens per chunk and decode time.</p>
+      <p class="cap">Each existing family keeps some of these. <span class="hc">Holding all four at once is the goal.</span></p>
     </div>
   </section>
 
-  <!-- 4 -->
-  <section class="s" data-t="Prior families">
+  <!-- 4 · COMPARISON -->
+  <section class="s" data-t="Prior tokenizers">
     <div>
-      <p class="lab">Challenge</p>
-      <h2>Four properties. <i>Who holds all of them?</i></h2>
+      <p class="lab">Where existing tokenizers fall short</p>
+      <h2><span class="q">Who holds all four?</span></h2>
     </div>
     <div class="fig">
-      <table class="sc">
-        <thead><tr>
-          <th style="width:20%">Family</th>
-          <th style="width:11%">ordered<br>coarse to fine</th>
-          <th style="width:12%">length chosen<br>per sample</th>
-          <th style="width:12%">one vocabulary,<br>many bodies</th>
-          <th style="width:11%">every prefix<br>decodes</th>
-          <th style="width:34%">Where it lands</th>
-        </tr></thead>
+      <table class="cmp">
+        <thead><tr><th style="width:22%">Family</th><th>Shared</th><th>Intent first</th><th>Adaptive</th><th>Legal</th><th style="width:32%">Where it lands</th></tr></thead>
         <tbody>
-          <tr><td>Per dimension binning</td><td><i class="o"></i></td><td><i class="o"></i></td><td><i class="o"></i></td><td><i class="o y"></i></td>
-            <td class="why">A hundred tokens per chunk. Inference pays for all of them.</td></tr>
-          <tr><td>Frequency and merges</td><td><i class="o"></i></td><td><i class="o h"></i></td><td><i class="o"></i></td><td><i class="o"></i></td>
-            <td class="why">The whole code is required before anything can be read back.</td></tr>
-          <tr><td>Vector quantization</td><td><i class="o h"></i></td><td><i class="o"></i></td><td><i class="o"></i></td><td><i class="o"></i></td>
-            <td class="why">A reach and an insertion receive the same budget. A new robot needs a new codebook.</td></tr>
-          <tr><td>Ordered tokenizers</td><td><i class="o y"></i></td><td><i class="o"></i></td><td><i class="o"></i></td><td><i class="o h"></i></td>
-            <td class="why">Order works, and it matters. Length is set by hand, for a single arm.</td></tr>
-          <tr><td>Cross body codecs</td><td><i class="o h"></i></td><td><i class="o"></i></td><td><i class="o y"></i></td><td><i class="o"></i></td>
-            <td class="why">One vocabulary, spent evenly on easy motions and hard ones alike.</td></tr>
-          <tr class="us"><td><b>SEMA</b></td><td><i class="o y"></i></td><td><i class="o y"></i></td><td><i class="o y"></i></td><td><i class="o y"></i></td>
-            <td class="why">All four, held on a single axis.</td></tr>
+          <tr><td>Binning</td><td class="mark no">·</td><td class="mark no">·</td><td class="mark no">·</td><td class="mark yes">✓</td><td>A hundred tokens per chunk</td></tr>
+          <tr><td>Frequency codes</td><td class="mark no">·</td><td class="mark no">·</td><td class="mark par">~</td><td class="mark no">·</td><td>The whole code is required to read back</td></tr>
+          <tr><td>Vector quantization</td><td class="mark no">·</td><td class="mark par">~</td><td class="mark no">·</td><td class="mark no">·</td><td>Same depth for every motion</td></tr>
+          <tr><td>OAT (baseline)</td><td class="mark no">·</td><td class="mark yes">✓</td><td class="mark no">·</td><td class="mark par">~</td><td>Order works; length is set by hand</td></tr>
+          <tr><td>Cross-body codec</td><td class="mark yes">✓</td><td class="mark par">~</td><td class="mark no">·</td><td class="mark no">·</td><td>One vocabulary, spent evenly</td></tr>
+          <tr class="us"><td>ActionTok</td><td class="mark yes">✓</td><td class="mark yes">✓</td><td class="mark yes">✓</td><td class="mark yes">✓</td><td>All four, on one axis</td></tr>
         </tbody>
       </table>
-      <p class="cap">Adaptive length together with a shared cross body vocabulary remains an open cell. That cell is the project.</p>
+      <p class="cap">OAT gives us ordering as a <span class="hi">strong baseline</span>. We add the learned stop and the shared cross-body vocabulary.</p>
     </div>
   </section>
 
-  <!-- 5 -->
+  <!-- 5 · DIAGNOSTIC -->
   <section class="s" data-t="First finding">
     <div>
-      <p class="lab">First finding</p>
-      <h2>We built the variable length coder ourselves. <i>How adaptive is it?</i></h2>
-      <p class="sub">Full scale, three seeds. Reconstruction lands on target, and the length mechanism stays asleep.</p>
+      <p class="lab">What our first version taught us</p>
+      <h2>Reconstruction was strong. <span class="q">How adaptive was the length?</span></h2>
+      <p class="sub w">Full scale, three seeds. The length mechanism stayed asleep, so we now force it.</p>
     </div>
     <div class="fig">
       <div class="bars" id="bars">
-        <div class="br" data-v="94.7"><div><div class="l">Chunks that run all the way to the horizon</div><div class="tk"><div class="fl"></div></div></div><div class="v">94.7%</div></div>
-        <div class="br" data-v="95"><div><div class="l">Codes that reach maximum depth, so depth is effectively fixed</div><div class="tk"><div class="fl"></div></div></div><div class="v">~95%</div></div>
-        <div class="br" data-v="8.5" data-g="1"><div><div class="l">Prefixes that improve step by step, which is what ordering would give</div><div class="tk"><div class="fl g"></div></div></div><div class="v">8.5%</div></div>
-        <div class="br" data-v="28.8" data-g="1"><div><div class="l">Decodes that land inside the robot limits</div><div class="tk"><div class="fl g"></div></div></div><div class="v">28.8%</div></div>
+        <div class="br" data-v="94.7"><div><div class="l">Chunks that run all the way to the horizon</div><div class="tk2"><div class="fl"></div></div></div><div class="v">94.7%</div></div>
+        <div class="br" data-v="95"><div><div class="l">Codes that reach maximum depth, so depth is effectively fixed</div><div class="tk2"><div class="fl"></div></div></div><div class="v">95%</div></div>
+        <div class="br" data-v="8.5" data-g="1"><div><div class="l">Prefixes that improve step by step, the sign of true order</div><div class="tk2"><div class="fl g"></div></div></div><div class="v">8.5%</div></div>
+        <div class="br" data-v="28.8" data-g="1"><div><div class="l">Decodes that land inside the robot limits</div><div class="tk2"><div class="fl g"></div></div></div><div class="v">28.8%</div></div>
       </div>
-      <p class="cap">The codebook is fully used and every decode is finite, so the model is healthy. The mechanism simply had freedom to ignore its own promise. This is the gap SEMA is designed to close.</p>
+      <p class="cap">The codebook is fully used and every decode is finite, so the model is healthy. <span class="hc">The mechanism simply had room to ignore its own promise.</span></p>
     </div>
   </section>
 
-  <!-- 6 · MASTER FLOW -->
-  <section class="s" data-t="The pipeline">
+  <!-- 6 · OVERVIEW -->
+  <section class="s" data-t="The whole project">
     <div>
-      <p class="lab">The pipeline, drawn in six moves</p>
-      <h2>From any robot's actions, to one code, and back.</h2>
+      <p class="lab">The whole project on one page</p>
+      <h2>From any robot's actions, to one code, and back to control.</h2>
     </div>
     <div class="fig">
-      <svg viewBox="0 0 960 336" id="flow" aria-label="The SEMA pipeline: bodies, analytic lift, canonical space, shared encoder, the code, shared decoder with a bounded projection, and per body adapters.">
-        <g class="grp" data-k="1">
-          <text class="k" x="14" y="24">Bodies</text>
-          <rect class="bx slate" x="14" y="36" width="124" height="32" rx="5"/><text class="m" x="28" y="56">seven degree arm</text>
-          <rect class="bx slate" x="14" y="76" width="124" height="32" rx="5"/><text class="m" x="28" y="96">real arm, five hertz</text>
-          <rect class="bx slate" x="14" y="116" width="124" height="32" rx="5"/><text class="m" x="28" y="136">bimanual rig</text>
-          <rect class="bx slate" x="14" y="156" width="124" height="32" rx="5"/><text class="m" x="28" y="176">dexterous hand</text>
-        </g>
-        <g class="grp" data-k="2">
-          <path class="w" d="M142 52 Q164 52 168 96"/><path class="w" d="M142 92 H168"/>
-          <path class="w" d="M142 132 Q164 132 168 100"/><path class="w" d="M142 172 Q164 172 168 106"/>
-          <rect class="tint-teal" x="174" y="62" width="112" height="72" rx="7"/>
-          <rect class="bx teal" x="174" y="62" width="112" height="72" rx="7"/>
-          <text class="n" x="192" y="90" fill="var(--teal)">analytic lift</text>
-          <text class="m" x="192" y="110">frames, units, rate</text>
-          <text class="m" x="192" y="126">solved in closed form</text>
-        </g>
-        <g class="grp" data-k="3">
-          <path class="w teal" d="M290 98 H312"/>
-          <rect class="tint-teal" x="318" y="62" width="112" height="72" rx="7"/>
-          <rect class="bx teal" x="318" y="62" width="112" height="72" rx="7"/>
-          <text class="n" x="336" y="90" fill="var(--teal)">canonical space</text>
-          <text class="m" x="336" y="110">one motion frame</text>
-          <text class="m" x="336" y="126">with a channel mask</text>
-        </g>
-        <g class="grp" data-k="4">
-          <path class="w teal" d="M434 98 H456"/>
-          <rect class="tint-amber" x="462" y="54" width="126" height="88" rx="7"/>
-          <rect class="bx amber" x="462" y="54" width="126" height="88" rx="7"/>
-          <text class="n" x="480" y="82" fill="var(--amber)">shared encoder</text>
-          <text class="m" x="480" y="102">emits one token at a time</text>
-          <text class="m" x="480" y="118">chooses when to halt</text>
-          <text class="m" x="480" y="134">training truncates, so order forms</text>
-        </g>
-        <g class="grp" data-k="5">
-          <path class="w coral" d="M525 146 V180"/>
-          <text class="k" x="300" y="176" fill="var(--coral)">The code, one vocabulary for every body</text>
-          <rect class="tint-coral" x="300" y="186" width="404" height="54" rx="7"/>
-          <rect class="bx coral" x="300" y="186" width="404" height="54" rx="7"/>
-          <rect class="bx teal" x="316" y="198" width="76" height="30" rx="4"/><text class="m" x="336" y="218" fill="var(--teal)">intent</text>
-          <rect class="bx" x="400" y="198" width="60" height="30" rx="4"/><text class="m" x="416" y="218">detail</text>
-          <rect class="bx" x="468" y="198" width="60" height="30" rx="4"/><text class="m" x="484" y="218">detail</text>
-          <rect class="bx coral" x="536" y="198" width="60" height="30" rx="4"/><text class="m" x="552" y="218" fill="var(--coral)">stop</text>
-          <text class="m" x="612" y="218">length follows the motion</text>
-        </g>
-        <g class="grp" data-k="6">
-          <path class="w" d="M300 213 H268 Q246 213 246 246 V258"/>
-          <rect class="bx" x="140" y="262" width="212" height="60" rx="7"/>
-          <text class="n" x="158" y="286">shared decoder</text>
-          <text class="m" x="158" y="306">reads any prefix, frozen on new bodies</text>
-          <path class="w" d="M356 292 H388"/>
-          <rect class="tint-slate" x="394" y="262" width="196" height="60" rx="7"/>
-          <rect class="bx violet" x="394" y="262" width="196" height="60" rx="7"/>
-          <text class="n" x="412" y="286" fill="var(--violet)">bounded projection</text>
-          <text class="m" x="412" y="306">mask, clamp, rotation, always legal</text>
-          <path class="w" d="M594 292 H636 Q664 292 664 254 V220"/>
-          <rect class="bx slate" x="726" y="122" width="196" height="56" rx="7"/>
-          <text class="n" x="744" y="146">body adapter</text>
-          <text class="m" x="744" y="166">five percent of the parameters</text>
-          <rect class="bx slate" x="726" y="52" width="196" height="56" rx="7"/>
-          <text class="n" x="744" y="76">native command</text>
-          <text class="m" x="744" y="96">right shape, inside the limits</text>
-          <path class="w" d="M664 220 V150 H722"/>
-          <path class="w" d="M824 120 V112"/>
-          <text class="k" x="726" y="36">Back to the robot</text>
-        </g>
+      <svg viewBox="0 0 1060 600" id="flow" aria-label="A step by step map of the whole project: bodies, canonical lift, shared encoder, the code, shared decoder, bounded projection, body adapter to the robot, and policy training with transfer.">
+        <!-- Row 1 -->
+        <g class="grp" data-k="1"><rect class="bx slate" x="30" y="70" width="210" height="140" rx="10"/>
+          <circle cx="60" cy="100" r="19" class="badge"/><text class="badge-t" x="54" y="107">1</text>
+          <text class="tt" x="90" y="107">Bodies</text>
+          <text class="td" x="52" y="150">arms, rigs, hands</text>
+          <text class="td" x="52" y="180">one training run</text></g>
+        <g class="grp" data-k="2"><rect class="bx teal" x="290" y="70" width="210" height="140" rx="10"/>
+          <circle cx="320" cy="100" r="19" class="badge"/><text class="badge-t" x="314" y="107">2</text>
+          <text class="tt" x="350" y="107">Canonical lift</text>
+          <text class="td" x="312" y="150">frames, units, rate</text>
+          <text class="td" x="312" y="180">plus a channel mask</text></g>
+        <g class="grp" data-k="3"><rect class="bx amber" x="550" y="70" width="210" height="140" rx="10"/>
+          <circle cx="580" cy="100" r="19" class="badge"/><text class="badge-t" x="574" y="107">3</text>
+          <text class="tt" x="610" y="107">Shared encoder</text>
+          <text class="td" x="572" y="150">one token at a time</text>
+          <text class="td" x="572" y="180">chooses the stop</text></g>
+        <g class="grp" data-k="4"><rect class="bx coral" x="810" y="70" width="220" height="140" rx="10"/>
+          <circle cx="840" cy="100" r="19" class="badge"/><text class="badge-t" x="834" y="107">4</text>
+          <text class="tt" x="870" y="107">The code</text>
+          <rect class="bx teal" x="828" y="128" width="58" height="34" rx="5"/><text class="td fill-teal" x="836" y="151">int</text>
+          <rect class="bx" x="892" y="128" width="42" height="34" rx="5"/><text class="td" x="900" y="151">·</text>
+          <rect class="bx coral" x="940" y="128" width="72" height="34" rx="5"/><text class="td fill-coral" x="950" y="151">stop</text>
+          <text class="td" x="828" y="192">length from the motion</text></g>
+        <path class="w teal" d="M240 140 H286"/><path class="w teal" d="M500 140 H546"/><path class="w teal" d="M760 140 H806"/>
+        <path class="w coral" d="M920 210 V250 H520 V290" /><path class="w coral" d="M920 210 V250"/>
+        <!-- Row 2 -->
+        <g class="grp" data-k="5"><rect class="bx teal" x="810" y="290" width="220" height="130" rx="10"/>
+          <circle cx="840" cy="320" r="19" class="badge"/><text class="badge-t" x="834" y="327">5</text>
+          <text class="tt" x="870" y="327">Shared decoder</text>
+          <text class="td" x="828" y="368">reads any prefix</text>
+          <text class="td" x="828" y="398">frozen on new bodies</text></g>
+        <g class="grp" data-k="6"><rect class="bx violet" x="550" y="290" width="210" height="130" rx="10"/>
+          <circle cx="580" cy="320" r="19" class="badge"/><text class="badge-t" x="574" y="327">6</text>
+          <text class="tt" x="610" y="327">Projection</text>
+          <text class="td" x="572" y="368">mask, clamp, rotate</text>
+          <text class="td fill-teal" x="572" y="398">always legal</text></g>
+        <g class="grp" data-k="7"><rect class="bx slate" x="290" y="290" width="210" height="130" rx="10"/>
+          <circle cx="320" cy="320" r="19" class="badge"/><text class="badge-t" x="314" y="327">7</text>
+          <text class="tt" x="350" y="327">Body adapter</text>
+          <text class="td" x="312" y="368">five percent of weights</text>
+          <text class="td" x="312" y="398">native command</text></g>
+        <g class="grp" data-k="7"><rect class="bx" x="30" y="290" width="210" height="130" rx="10"/>
+          <text class="tt" x="70" y="345">Robot</text>
+          <text class="td" x="52" y="385">executes the chunk</text></g>
+        <path class="w teal" d="M810 355 H762"/><path class="w" d="M550 355 H502"/><path class="w" d="M290 355 H242"/>
+        <!-- Row 3 -->
+        <path class="w dash" d="M135 420 V470"/>
+        <g class="grp" data-k="8"><rect class="wash-amber" x="30" y="470" width="470" height="110" rx="10"/>
+          <rect class="bx amber" x="30" y="470" width="470" height="110" rx="10"/>
+          <circle cx="60" cy="500" r="19" class="badge"/><text class="badge-t" x="54" y="507">8</text>
+          <text class="tt" x="90" y="507">Policy pre-training in the token space</text>
+          <text class="td" x="52" y="552">the frozen tokenizer is the action space from step one</text></g>
+        <g class="grp" data-k="8"><rect class="bx coral" x="520" y="470" width="230" height="110" rx="10"/>
+          <text class="tt" x="545" y="512">Rollout success</text>
+          <text class="td" x="542" y="552">closed-loop, three seeds</text></g>
+        <g class="grp" data-k="8"><rect class="bx slate" x="770" y="470" width="260" height="110" rx="10"/>
+          <text class="tt" x="795" y="512">Transfer</text>
+          <text class="td" x="792" y="552">freeze, adapt 5%, new body + hand</text></g>
+        <path class="w" d="M500 525 H516"/><path class="w" d="M750 525 H766"/>
+        <path class="w coral dash" d="M135 210 V470"/>
       </svg>
       <div class="steps" id="steps"></div>
       <p class="scap" id="scap"></p>
     </div>
   </section>
 
-  <!-- 7 -->
+  <!-- 7 · COARSE TO FINE -->
   <section class="s" data-t="Coarse to fine">
     <div>
-      <p class="lab">Inside the code</p>
-      <h2>Drag the prefix. <i>Which token carries the intent?</i></h2>
+      <p class="lab">A curve, not just an endpoint</p>
+      <h2>Drag the prefix. <span class="q">Which token carries the intent?</span></h2>
     </div>
     <div class="fig">
       <div class="cells" id="cells" role="group" aria-label="Prefix length"></div>
-      <canvas id="cv" width="1000" height="320" aria-label="An end effector trajectory reconstructed from the selected token prefix."></canvas>
+      <canvas id="cv" width="1000" height="300" aria-label="An end effector trajectory reconstructed from the selected token prefix."></canvas>
       <div class="ro"><span>error <b id="ro-e">0</b></span><span>tokens <b id="ro-t">3</b></span><span>decode <b id="ro-l">4 ms</b></span></div>
-      <p class="cap">One token already carries the gesture. The tail buys precision. Fewer tokens shorten the decode, and control gets faster.</p>
+      <p class="cap">One token already carries the gesture. Fewer tokens shorten the decode, and control gets faster.</p>
     </div>
   </section>
 
-  <!-- 8 -->
+  <!-- 8 · ALWAYS LEGAL -->
   <section class="s" data-t="Always legal">
     <div>
-      <p class="lab">The guarantee</p>
-      <h2>Feed it random tokens. <i>Does a legal action come out?</i></h2>
+      <p class="lab">Every trained budget decodes a complete action</p>
+      <h2>Feed it random tokens. <span class="q">Does a legal action come out?</span></h2>
     </div>
     <div class="fig">
-      <svg viewBox="0 0 920 244" aria-label="Any token sequence passes through mask, clamp and rotation projection and leaves as a legal robot command.">
-        <rect class="bx" x="14" y="80" width="140" height="76" rx="7"/>
-        <text class="n" x="32" y="106">any sequence</text>
-        <text class="m" x="32" y="126">random, truncated,</text>
-        <text class="m" x="32" y="142">or straight from the policy</text>
-        <path class="w" d="M158 118 H194"/>
-        <rect class="tint-slate" x="200" y="62" width="320" height="112" rx="9"/>
-        <rect class="bx violet" x="200" y="62" width="320" height="112" rx="9"/>
-        <text class="k" x="220" y="88" fill="var(--violet)">Bounded projection</text>
-        <rect class="bx" x="220" y="100" width="90" height="56" rx="5"/><text class="n" x="238" y="124">mask</text><text class="m" x="238" y="142">absent joints</text>
-        <rect class="bx" x="318" y="100" width="90" height="56" rx="5"/><text class="n" x="336" y="124">clamp</text><text class="m" x="336" y="142">joint limits</text>
-        <rect class="bx" x="416" y="100" width="86" height="56" rx="5"/><text class="n" x="432" y="124">rotate</text><text class="m" x="432" y="142">valid frame</text>
-        <path class="w teal" d="M524 118 H562"/>
-        <rect class="tint-teal" x="568" y="80" width="160" height="76" rx="7"/>
-        <rect class="bx teal" x="568" y="80" width="160" height="76" rx="7"/>
-        <text class="n" x="586" y="112" fill="var(--teal)">a legal command</text>
-        <text class="m" x="586" y="134">finite, right shape, in range</text>
-        <rect class="bx coral" x="762" y="62" width="146" height="112" rx="9"/>
-        <text class="k" x="780" y="88" fill="var(--coral)">Coders today</text>
-        <text x="780" y="124" font-size="26" fill="var(--coral)">28.8%</text>
-        <text class="m" x="780" y="144">land in range</text>
-        <text class="m" x="780" y="164" fill="var(--teal)">our target: 100%</text>
-        <text class="k" x="14" y="212">A new number: the total decodability rate</text>
-        <text class="m" x="14" y="230">Our design earns it by construction, so it becomes a scalar anyone can compare against.</text>
+      <svg viewBox="0 0 1000 250" aria-label="Any token sequence passes through mask, clamp and rotation and leaves as a legal robot command.">
+        <rect class="bx" x="20" y="78" width="170" height="90" rx="9"/>
+        <text class="tt" x="42" y="118">any sequence</text><text class="td" x="42" y="150">random or trained</text>
+        <path class="w" d="M194 123 H236"/>
+        <rect class="wash-slate" x="242" y="56" width="360" height="134" rx="12"/>
+        <rect class="bx violet" x="242" y="56" width="360" height="134" rx="12"/>
+        <text class="tk fill-violet" x="266" y="90">Bounded projection</text>
+        <rect class="bx" x="266" y="106" width="102" height="62" rx="6"/><text class="td" x="290" y="143">mask</text>
+        <rect class="bx" x="378" y="106" width="102" height="62" rx="6"/><text class="td" x="398" y="143">clamp</text>
+        <rect class="bx" x="490" y="106" width="96" height="62" rx="6"/><text class="td" x="506" y="143">rotate</text>
+        <path class="w teal" d="M606 123 H648"/>
+        <rect class="wash-teal" x="654" y="78" width="170" height="90" rx="9"/>
+        <rect class="bx teal" x="654" y="78" width="170" height="90" rx="9"/>
+        <text class="tt fill-teal" x="676" y="118">legal command</text><text class="td" x="676" y="150">in range, right shape</text>
+        <rect class="bx coral" x="846" y="56" width="146" height="134" rx="12"/>
+        <text class="tk fill-coral" x="866" y="92">V1 coder</text>
+        <text x="862" y="140" font-size="42" font-weight="800" class="fill-coral">28.8%</text>
+        <text class="td fill-teal" x="862" y="176">target 100%</text>
       </svg>
+      <p class="cap">A new number, the <span class="hi">total decodability rate</span>. Our design earns it by construction.</p>
     </div>
   </section>
 
-  <!-- 9 -->
-  <section class="s" data-t="Training">
+  <!-- 9 · TRAINING -->
+  <section class="s" data-t="Change the policy">
     <div>
-      <p class="lab">Training</p>
-      <h2>Three stages, with the tokenizer living <i>inside</i> the policy.</h2>
+      <p class="lab">The tokenizer teaches the policy</p>
+      <h2>Three stages, one variable: the action representation.</h2>
     </div>
     <div class="fig">
-      <svg viewBox="0 0 920 292" aria-label="Stage one trains the tokenizer on actions. Stage two trains the policy inside the token space. Stage three transfers to an unseen body and to a dexterous hand.">
-        <rect x="12" y="16" width="278" height="230" rx="10" fill="none" stroke="var(--sage)"/>
-        <text class="k" x="32" y="42" fill="var(--sage)">Stage one, the tokenizer</text>
-        <rect class="bx" x="32" y="56" width="238" height="36" rx="5"/><text class="m" x="48" y="79">actions alone, a simulator stays idle</text>
-        <rect class="bx" x="32" y="100" width="238" height="36" rx="5"/><text class="m" x="48" y="123">two bodies first, then all of them jointly</text>
-        <rect class="bx amber" x="32" y="144" width="238" height="36" rx="5"/><text class="m" x="48" y="167" fill="var(--amber)">meaning heads, active in pre training</text>
-        <rect class="bx" x="32" y="188" width="238" height="44" rx="5"/>
-        <text class="m" x="48" y="208">monitors with the authority to abort</text>
-        <text class="m" x="48" y="224">length, halting, codebook use</text>
-        <path class="w" d="M151 92 V96"/><path class="w" d="M151 136 V140"/><path class="w" d="M151 180 V184"/>
-        <path class="w teal" d="M294 130 H316"/>
-
-        <rect x="322" y="16" width="278" height="230" rx="10" fill="none" stroke="var(--coral)"/>
-        <text class="k" x="342" y="42" fill="var(--coral)">Stage two, the policy</text>
-        <rect class="bx coral" x="342" y="56" width="238" height="36" rx="5"/><text class="m" x="358" y="79" fill="var(--coral)">the tokenizer is frozen</text>
-        <rect class="bx" x="342" y="100" width="238" height="36" rx="5"/><text class="m" x="358" y="123">the policy learns in the token space</text>
-        <rect class="bx" x="342" y="144" width="238" height="36" rx="5"/><text class="m" x="358" y="167">the stop token ends the rollout early</text>
-        <rect class="bx" x="342" y="188" width="238" height="44" rx="5"/>
-        <text class="m" x="358" y="208">matched by construction</text>
-        <text class="m" x="358" y="224">same vision, same network, same budget</text>
-        <path class="w" d="M461 92 V96"/><path class="w" d="M461 136 V140"/><path class="w" d="M461 180 V184"/>
-        <path class="w teal" d="M604 130 H626"/>
-
-        <rect x="632" y="16" width="276" height="230" rx="10" fill="none" stroke="var(--slate)"/>
-        <text class="k" x="652" y="42" fill="var(--slate)">Stage three, transfer</text>
-        <rect class="bx slate" x="652" y="56" width="238" height="36" rx="5"/><text class="m" x="668" y="79">vocabulary and decoder stay frozen</text>
-        <rect class="bx" x="652" y="100" width="238" height="36" rx="5"/><text class="m" x="668" y="123">a small adapter meets the new body</text>
-        <rect class="bx violet" x="652" y="144" width="238" height="36" rx="5"/><text class="m" x="668" y="167" fill="var(--violet)">the hand asks whether order pays</text>
-        <rect class="bx" x="652" y="188" width="238" height="44" rx="5"/>
-        <text class="m" x="668" y="208">gate: ninety percent of full fine tuning</text>
-        <text class="m" x="668" y="224">below that, we call the work multi body</text>
-        <path class="w" d="M771 92 V96"/><path class="w" d="M771 136 V140"/><path class="w" d="M771 180 V184"/>
-        <text class="m" x="12" y="272">Every tokenizer we compare receives the same policy, the same data and the same budget, so the action representation is the only variable.</text>
+      <svg viewBox="0 0 1000 260" aria-label="Stage one trains the tokenizer on actions, stage two trains the policy inside the token space, stage three transfers to an unseen body and a dexterous hand.">
+        <rect class="bx sage" x="14" y="30" width="300" height="200" rx="12"/>
+        <text class="tk fill-sage" x="40" y="70">Stage one · tokenizer</text>
+        <text class="td" x="40" y="112">actions only, no simulator</text>
+        <text class="td" x="40" y="146">two bodies, then all jointly</text>
+        <text class="td" x="40" y="180">monitors can abort</text>
+        <path class="w teal" d="M318 130 H352"/>
+        <rect class="bx coral" x="356" y="30" width="300" height="200" rx="12"/>
+        <text class="tk fill-coral" x="382" y="70">Stage two · policy</text>
+        <text class="td" x="382" y="112">tokenizer is frozen</text>
+        <text class="td" x="382" y="146">policy learns in tokens</text>
+        <text class="td" x="382" y="180">the stop ends it early</text>
+        <path class="w teal" d="M660 130 H694"/>
+        <rect class="bx slate" x="698" y="30" width="288" height="200" rx="12"/>
+        <text class="tk fill-slate" x="724" y="70">Stage three · transfer</text>
+        <text class="td" x="724" y="112">vocabulary stays frozen</text>
+        <text class="td" x="724" y="146">a small adapter meets it</text>
+        <text class="td fill-violet" x="724" y="180">the hand tests the order</text>
       </svg>
+      <p class="cap">Every tokenizer we compare receives the <span class="hi">same policy, data and budget</span>.</p>
     </div>
   </section>
 
-  <!-- 10 -->
+  <!-- 10 · EVALUATION -->
   <section class="s" data-t="Evaluation">
     <div>
-      <p class="lab">Evaluation</p>
-      <h2>Success against cost. <i>Which corner do we want?</i></h2>
+      <p class="lab">Design tokens for the policy</p>
+      <h2>Success against cost. <span class="q">Which corner do we want?</span></h2>
     </div>
     <div class="fig">
-      <svg viewBox="0 0 920 316" aria-label="A scatter of success rate against tokens per chunk. The target region is high success with few tokens, where SEMA aims.">
-        <rect class="tint-amber" x="92" y="24" width="248" height="128" rx="6"/>
-        <text class="k" x="106" y="46" fill="var(--amber)">Few tokens, high success</text>
-        <line x1="92" y1="256" x2="836" y2="256" stroke="var(--line)"/>
-        <line x1="92" y1="24" x2="92" y2="256" stroke="var(--line)"/>
-        <text class="k" x="700" y="280">Tokens per chunk</text>
-        <text class="k" x="16" y="34">Success</text>
-        <circle cx="712" cy="236" r="6" fill="var(--ink3)"/><text class="m" x="640" y="224">binning, a hundred tokens</text>
-        <circle cx="306" cy="180" r="6" fill="var(--ink3)"/><text class="m" x="238" y="168">frequency and merges</text>
-        <circle cx="156" cy="212" r="6" fill="var(--ink3)"/><text class="m" x="120" y="232">vector quantization</text>
-        <circle cx="264" cy="120" r="6" fill="var(--sage)"/><text class="m" x="206" y="108" fill="var(--sage)">ordered tokenizer</text>
-        <circle cx="296" cy="92" r="6" fill="var(--slate)"/><text class="m" x="308" y="88" fill="var(--slate)">variable length coder</text>
-        <circle cx="486" cy="102" r="6" fill="var(--violet)"/><text class="m" x="498" y="98" fill="var(--violet)">continuous policy, heavy compute</text>
-        <g class="breathe">
-          <circle cx="168" cy="62" r="9" fill="var(--coral)"/>
-          <circle cx="168" cy="62" r="17" fill="none" stroke="var(--coral)" opacity=".45"/>
-        </g>
-        <text class="n" x="188" y="58" fill="var(--coral)">SEMA</text>
-        <text class="m" x="188" y="76">a short shared prefix, halting early</text>
-        <text class="m" x="92" y="300">Three seeds, closed loop rollouts, with the continuous controllers standing in the same table.</text>
+      <svg viewBox="0 0 1000 300" aria-label="A scatter of success rate against tokens per chunk. The target region is high success with few tokens, where ActionTok aims.">
+        <rect class="wash-amber" x="96" y="26" width="270" height="130" rx="8"/>
+        <text class="tk fill-amber" x="112" y="54">Few tokens, high success</text>
+        <line x1="96" y1="250" x2="900" y2="250" stroke="var(--rule)" stroke-width="3"/>
+        <line x1="96" y1="26" x2="96" y2="250" stroke="var(--rule)" stroke-width="3"/>
+        <text class="tk" x="740" y="284">Tokens per chunk</text>
+        <text class="tk" x="18" y="40">Success</text>
+        <circle cx="770" cy="228" r="9" class="fill-slate"/><text class="td" x="690" y="216">binning</text>
+        <circle cx="330" cy="176" r="9" class="fill-slate"/><text class="td" x="256" y="164">frequency</text>
+        <circle cx="168" cy="206" r="9" class="fill-slate"/><text class="td" x="126" y="230">fixed VQ</text>
+        <circle cx="280" cy="118" r="9" class="fill-sage"/><text class="td fill-sage" x="300" y="112">OAT</text>
+        <circle cx="520" cy="100" r="9" class="fill-violet"/><text class="td fill-violet" x="540" y="96">continuous policy</text>
+        <g class="breathe"><circle cx="176" cy="66" r="13" class="fill-coral"/>
+          <circle cx="176" cy="66" r="23" fill="none" stroke="var(--coral)" stroke-width="3"/></g>
+        <text class="tt fill-coral" x="202" y="62">ActionTok</text>
+        <text class="td" x="202" y="90">short shared prefix, stops early</text>
       </svg>
       <div class="row" style="margin-top:6px">
-        <span class="chip"><i style="background:var(--teal)"></i>intrinsic: rate, length, decodability</span>
-        <span class="chip"><i style="background:var(--coral)"></i>downstream: frozen tokenizer, matched policy</span>
-        <span class="chip"><i style="background:var(--slate)"></i>cross body: leave one embodiment out</span>
+        <span class="chip"><i style="background:var(--teal)"></i>Leave one body out</span>
+        <span class="chip"><i style="background:var(--amber)"></i>Length attribution</span>
+        <span class="chip"><i style="background:var(--violet)"></i>Total decodability</span>
       </div>
+      <p class="cap">Three tests we bring to the field, each written so it can <span class="hc">refute us</span>.</p>
     </div>
   </section>
 
-  <!-- 11 -->
-  <section class="s" data-t="New tests">
-    <div>
-      <p class="lab">Three tests we bring to the field</p>
-      <h2>Each one is written so it can refute us.</h2>
-    </div>
-    <div class="fig">
-      <svg viewBox="0 0 920 250" aria-label="Three new evaluations: leave one embodiment out, length attribution, and total decodability.">
-        <rect class="tint-teal" x="12" y="14" width="288" height="196" rx="9"/>
-        <rect class="bx teal" x="12" y="14" width="288" height="196" rx="9"/>
-        <text class="k" x="32" y="40" fill="var(--teal)">Leave one body out</text>
-        <rect class="bx" x="32" y="54" width="140" height="30" rx="4"/><text class="m" x="46" y="74">the vocabulary</text>
-        <text class="m" x="182" y="74" fill="var(--teal)">frozen</text>
-        <rect class="bx" x="32" y="92" width="140" height="30" rx="4"/><text class="m" x="46" y="112">the shared decoder</text>
-        <text class="m" x="182" y="112" fill="var(--teal)">frozen</text>
-        <rect class="bx amber" x="32" y="130" width="140" height="30" rx="4"/><text class="m" x="46" y="150" fill="var(--amber)">a small adapter</text>
-        <text class="m" x="182" y="150" fill="var(--amber)">trained</text>
-        <text class="m" x="32" y="180">An unseen robot reaches ninety percent</text>
-        <text class="m" x="32" y="196">of full fine tuning, or we rename the claim.</text>
-
-        <rect class="tint-amber" x="316" y="14" width="288" height="196" rx="9"/>
-        <rect class="bx amber" x="316" y="14" width="288" height="196" rx="9"/>
-        <text class="k" x="336" y="40" fill="var(--amber)">Why is this code long?</text>
-        <rect class="bx teal" x="336" y="56" width="248" height="34" rx="4"/>
-        <text class="m" x="352" y="78" fill="var(--teal)">because the motion is uncertain</text>
-        <rect class="bx coral" x="336" y="98" width="248" height="34" rx="4"/>
-        <text class="m" x="352" y="120" fill="var(--coral)">because of which robot produced it</text>
-        <text class="m" x="336" y="158">A regression fixed in advance decides.</text>
-        <text class="m" x="336" y="176">Should the robot win, our central claim</text>
-        <text class="m" x="336" y="192">falls, and we report exactly that.</text>
-
-        <rect class="tint-slate" x="620" y="14" width="288" height="196" rx="9"/>
-        <rect class="bx violet" x="620" y="14" width="288" height="196" rx="9"/>
-        <text class="k" x="640" y="40" fill="var(--violet)">Total decodability</text>
-        <text class="m" x="640" y="66">Random tokens in. Legal action out?</text>
-        <rect x="640" y="82" width="248" height="12" rx="6" fill="var(--paper2)" stroke="var(--rule)"/>
-        <rect x="640" y="82" width="71" height="12" rx="6" fill="var(--coral)"/>
-        <text class="m" x="640" y="112" fill="var(--coral)">coders today reach 28.8%</text>
-        <rect x="640" y="126" width="248" height="12" rx="6" fill="var(--paper2)" stroke="var(--rule)"/>
-        <rect x="640" y="126" width="248" height="12" rx="6" fill="var(--teal)"/>
-        <text class="m" x="640" y="156" fill="var(--teal)">SEMA reaches 100% by construction</text>
-        <text class="m" x="640" y="186">A scalar the field can adopt directly.</text>
-      </svg>
-    </div>
-  </section>
-
-  <!-- 12 -->
+  <!-- 11 · ROADMAP -->
   <section class="s" data-t="Roadmap">
     <div>
       <p class="lab">Plan</p>
       <h2>Six phases, each with a gate that can halt it.</h2>
-      <p class="sub">Select a phase to read its checkpoints and its contingency.</p>
     </div>
     <div class="fig">
       <div class="gt" id="gt"></div>
@@ -691,26 +602,26 @@ canvas{display:block;width:100%;max-width:660px;height:auto;margin:0 auto}
     </div>
   </section>
 
-  <!-- 13 -->
+  <!-- 12 · STATUS -->
   <section class="s" data-t="Where we stand">
     <div>
-      <p class="lab">Status</p>
-      <h2>The floor is built. <i>The contribution is next.</i></h2>
+      <p class="lab">Status today</p>
+      <h2>The floor is built. <span class="q">The contribution is next.</span></h2>
     </div>
     <div class="fig">
       <div class="ld">
-        <div class="rg hit"><span class="lv">L1</span><span>Training stays stable, every code decodes inside the limits, monitors read healthy</span><span class="tg t">reached</span></div>
-        <div class="rg hit"><span class="lv">L2</span><span>Baseline reproduced: <b>0.72</b> average success against a <b>0.75</b> target, with zero invalid decodes</span><span class="tg t">reached</span></div>
-        <div class="rg tgt"><span class="lv">L3</span><span>Within five percent of the strongest matched baseline, with cross body transfer as clear net gain</span><span class="tg a">next gate</span></div>
-        <div class="rg"><span class="lv">L4</span><span>Ahead on two benchmarks over three seeds, or level with it while spending a fifth fewer tokens</span><span class="tg s">target</span></div>
-        <div class="rg"><span class="lv">L5</span><span>An unseen body at ninety percent, and length shown to follow the motion rather than the machine</span><span class="tg s">target</span></div>
+        <div class="rg hit"><span class="lv">L1</span><span>Training stays stable, every code decodes in range, monitors read healthy</span><span class="tg t">reached</span></div>
+        <div class="rg hit"><span class="lv">L2</span><span>Baseline reproduced: <b>0.72</b> average success against a <b>0.75</b> target, zero invalid decodes</span><span class="tg t">reached</span></div>
+        <div class="rg tgt"><span class="lv">L3</span><span>Within five percent of the strongest baseline, with cross-body transfer as clear net gain</span><span class="tg a">next gate</span></div>
+        <div class="rg"><span class="lv">L4</span><span>Ahead on two benchmarks over three seeds, or level while spending a fifth fewer tokens</span><span class="tg s">target</span></div>
+        <div class="rg"><span class="lv">L5</span><span>An unseen body at ninety percent, length shown to follow the motion, not the machine</span><span class="tg s">target</span></div>
       </div>
-      <p class="close">Make the short prefix mean something every robot understands.<br>Spend a token once the motion has earned it.</p>
+      <p class="close">Make the short prefix mean something every robot understands.<br><span class="hc">Spend a token once the motion has earned it.</span></p>
     </div>
   </section>
 
   <div class="bar" id="bar"></div>
-  <div class="pg"><span class="c" id="c">01 / 13</span>
+  <div class="pg"><span class="c" id="c">01 / 12</span>
     <button id="prev" type="button" aria-label="Previous">&#8592;</button>
     <button id="next" type="button" aria-label="Next">&#8594;</button></div>
   </main>
@@ -723,8 +634,7 @@ var S=[].slice.call(document.querySelectorAll(".s")),i0=0;
 var dots=document.getElementById("dots"),bar=document.getElementById("bar"),c=document.getElementById("c");
 S.forEach(function(s,i){
   var b=document.createElement("button");b.className="dot";b.type="button";
-  b.innerHTML="<b>"+(i+1)+" &middot; "+s.dataset.t+"</b>";
-  b.setAttribute("aria-label",s.dataset.t);
+  b.innerHTML="<b>"+(i+1)+" &middot; "+s.dataset.t+"</b>";b.setAttribute("aria-label",s.dataset.t);
   b.onclick=function(){go(i)};dots.appendChild(b);s.__d=b;
 });
 function go(i){
@@ -733,7 +643,7 @@ function go(i){
   bar.style.width=((i+1)/S.length*100)+"%";
   c.textContent=String(i+1).padStart(2,"0")+" / "+String(S.length).padStart(2,"0");
   history.replaceState(null,"","#"+(i+1));
-  if(i===4)bars(); if(i===5)auto();
+  if(i===4)runbars(); if(i===5)auto();
 }
 document.getElementById("next").onclick=function(){go(i0+1)};
 document.getElementById("prev").onclick=function(){go(i0-1)};
@@ -748,129 +658,100 @@ document.getElementById("theme").onclick=function(){
 };
 
 var bd=false;
-function bars(){if(bd)return;bd=true;
+function runbars(){if(bd)return;bd=true;
   document.querySelectorAll("#bars .br").forEach(function(r,k){
-    setTimeout(function(){r.querySelector(".fl").style.width=r.dataset.v+"%"},120*k);});
+    setTimeout(function(){r.querySelector(".fl").style.width=r.dataset.v+"%"},130*k);});
 }
 
-/* master flow */
+/* overview stepper */
 var CAP=[
- "<i>1</i> <b>Bodies.</b> Different sizes, rates and joints, gathered into one training run.",
- "<i>2</i> <b>Analytic lift.</b> Frames, units and control rates are physics, so we solve them in closed form.",
- "<i>3</i> <b>Canonical space.</b> One motion frame, plus a mask that states which channels this body owns.",
- "<i>4</i> <b>Shared encoder.</b> It emits one token at a time and decides when to halt. Truncation during training makes the order coarse to fine.",
- "<i>5</i> <b>The code.</b> Intent arrives first, the stop token closes it, and the length follows how hard the motion is.",
- "<i>6</i> <b>Back to the robot.</b> Any prefix decodes, the projection keeps it legal, and a small adapter speaks the native language."
+ "<span class='n'>1</span> Bodies of every size join one training run.",
+ "<span class='n'>2</span> Frames, units and rates are solved in closed form.",
+ "<span class='n'>3</span> The shared encoder emits tokens and picks the stop.",
+ "<span class='n'>4</span> Intent leads the code, length follows the motion.",
+ "<span class='n'>5</span> One decoder reads any prefix, frozen on new bodies.",
+ "<span class='n'>6</span> Mask, clamp and rotate keep the action legal.",
+ "<span class='n'>7</span> A small adapter speaks the robot's native command.",
+ "<span class='n'>8</span> The policy trains in the token space, then transfers."
 ];
 var steps=document.getElementById("steps"),scap=document.getElementById("scap"),tm=null;
-for(var k=1;k<=6;k++){(function(n){
+for(var k=1;k<=8;k++){(function(n){
   var b=document.createElement("button");b.type="button";b.textContent=n;
-  b.onclick=function(){clearInterval(tm);setStep(n)};steps.appendChild(b);
-})(k);}
+  b.onclick=function(){clearInterval(tm);setStep(n)};steps.appendChild(b);})(k);}
 var rp=document.createElement("button");rp.type="button";rp.className="rp";rp.textContent="replay";
 rp.onclick=function(){auto(true)};steps.appendChild(rp);
 function setStep(n){
   document.querySelectorAll("#flow .grp").forEach(function(g){
-    g.classList.toggle("on",parseInt(g.dataset.k,10)<=n);});
-  [].forEach.call(steps.children,function(b,x){if(x<6)b.setAttribute("aria-pressed",(x+1)===n?"true":"false")});
+    var k=parseInt(g.dataset.k,10);
+    g.classList.toggle("on",k<=n);g.classList.toggle("focus",k===n);});
+  [].forEach.call(steps.children,function(b,x){if(x<8)b.setAttribute("aria-pressed",(x+1)===n?"true":"false")});
   scap.innerHTML=n>0?CAP[n-1]:"";
 }
 var played=false;
-function auto(f){
-  if(played&&!f)return; played=true;
-  clearInterval(tm);setStep(0);var n=0;
-  tm=setInterval(function(){n++;setStep(n);if(n>=6)clearInterval(tm)},950);
-}
+function auto(f){if(played&&!f)return;played=true;clearInterval(tm);setStep(0);var n=0;
+  tm=setInterval(function(){n++;setStep(n);if(n>=8)clearInterval(tm)},820);}
 
 /* prefix ruler */
 var H=8,K=3,cells=document.getElementById("cells"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 var re=document.getElementById("ro-e"),rt=document.getElementById("ro-t"),rl=document.getElementById("ro-l");
 for(var q=0;q<H;q++){(function(n){
   var b=document.createElement("button");b.className="cell";b.type="button";
-  b.onclick=function(){setK(n+1)};
-  b.onmouseenter=function(e){if(e.buttons===1)setK(n+1)};
-  b.onfocus=function(){setK(n+1)};
+  b.onclick=function(){setK(n+1)};b.onmouseenter=function(e){if(e.buttons===1)setK(n+1)};b.onfocus=function(){setK(n+1)};
   cells.appendChild(b);})(q);}
 function setK(k){K=Math.max(1,Math.min(H,k));paint();draw();}
-function paint(){
-  [].forEach.call(cells.children,function(b,n){
-    var live=n<K,stop=(n===K-1&&K>1);
-    b.dataset.live=live?"1":"0";
-    b.dataset.role=n===0?"sem":(stop?"stop":"tok");
-    b.textContent=n===0?"intent":(stop?"stop":"detail");
-  });
-}
+function paint(){[].forEach.call(cells.children,function(b,n){
+  var live=n<K,stop=(n===K-1&&K>1);
+  b.dataset.live=live?"1":"0";b.dataset.role=n===0?"sem":(stop?"stop":"tok");
+  b.textContent=n===0?"intent":(stop?"stop":"detail");});}
 var N=170,T=[];
 for(var t=0;t<N;t++){var u=t/(N-1);
   T.push([u*.88+.05,.5+.30*Math.sin(u*Math.PI)-.14*Math.sin(2*u*Math.PI)+.075*Math.sin(3.2*u*Math.PI+.6)
    -.04*Math.sin(5.1*u*Math.PI+1.2)+.022*Math.sin(8.3*u*Math.PI+.2)-.012*Math.sin(12.7*u*Math.PI)]);}
-function R(k){
-  var m=[0,1,2,3,4,5,6,6][Math.max(0,Math.min(7,k-1))],o=[];
+function R(k){var m=[0,1,2,3,4,5,6,6][Math.max(0,Math.min(7,k-1))],o=[];
   for(var t=0;t<N;t++){var u=t/(N-1);
     var e=[.30*Math.sin(u*Math.PI),-.14*Math.sin(2*u*Math.PI),.075*Math.sin(3.2*u*Math.PI+.6),
       -.04*Math.sin(5.1*u*Math.PI+1.2),.022*Math.sin(8.3*u*Math.PI+.2),-.012*Math.sin(12.7*u*Math.PI)];
-    var y=.5;
-    if(k===1){y+=.26*Math.sin(u*Math.PI);} else {for(var j=0;j<e.length;j++){if(j<m)y+=e[j];}}
-    o.push([u*.88+.05,y]);}
-  return o;
-}
+    var y=.5;if(k===1){y+=.26*Math.sin(u*Math.PI);}else{for(var j=0;j<e.length;j++){if(j<m)y+=e[j];}}
+    o.push([u*.88+.05,y]);}return o;}
 function V(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
-function draw(){
-  var W=cv.width,Hh=cv.height,p=30;
-  ctx.clearRect(0,0,W,Hh);
+function draw(){var W=cv.width,Hh=cv.height,p=30;ctx.clearRect(0,0,W,Hh);
   function P(a){return [p+a[0]*(W-2*p),Hh-p-a[1]*(Hh-2*p)];}
-  ctx.strokeStyle=V("--rule");ctx.lineWidth=1;ctx.globalAlpha=.65;
+  ctx.strokeStyle=V("--hair");ctx.lineWidth=1.5;ctx.globalAlpha=.8;
   for(var g=0;g<=4;g++){var y=p+g*(Hh-2*p)/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
   ctx.globalAlpha=1;
   function ln(pts){ctx.beginPath();pts.forEach(function(a,j){var b=P(a);if(j){ctx.lineTo(b[0],b[1])}else{ctx.moveTo(b[0],b[1])}});ctx.stroke();}
-  ctx.setLineDash([6,6]);ctx.lineWidth=2;ctx.strokeStyle=V("--ink3");ln(T);ctx.setLineDash([]);
-  var r=R(K);
-  ctx.lineWidth=4;ctx.lineJoin="round";ctx.strokeStyle=K===1?V("--teal"):V("--sage");ln(r);
+  ctx.setLineDash([7,7]);ctx.lineWidth=3;ctx.strokeStyle=V("--ink2");ln(T);ctx.setLineDash([]);
+  var r=R(K);ctx.lineWidth=6;ctx.lineJoin="round";ctx.strokeStyle=K===1?V("--teal"):V("--sage");ln(r);
   var a=P(T[N-1]),b=P(r[N-1]);
-  ctx.fillStyle=V("--ink3");ctx.beginPath();ctx.arc(a[0],a[1],4,0,6.3);ctx.fill();
-  ctx.fillStyle=V("--coral");ctx.beginPath();ctx.arc(b[0],b[1],5.5,0,6.3);ctx.fill();
-  ctx.font="italic 13px Georgia, serif";
-  ctx.fillStyle=V("--ink3");ctx.fillText("expert trajectory",p,20);
-  ctx.fillStyle=K===1?V("--teal"):V("--sage");ctx.fillText("decoded from prefix "+K,p+160,20);
+  ctx.fillStyle=V("--ink2");ctx.beginPath();ctx.arc(a[0],a[1],5,0,6.3);ctx.fill();
+  ctx.fillStyle=V("--coral");ctx.beginPath();ctx.arc(b[0],b[1],7,0,6.3);ctx.fill();
+  ctx.font="800 18px Georgia, serif";
+  ctx.fillStyle=V("--ink2");ctx.fillText("expert trajectory",p,22);
+  ctx.fillStyle=K===1?V("--teal"):V("--sage");ctx.fillText("decoded from prefix "+K,p+210,22);
   var e=0;for(var t2=0;t2<N;t2++){e+=Math.abs(T[t2][1]-r[t2][1]);}e/=N;
-  re.textContent=e.toFixed(4);rt.textContent=K;rl.textContent=(K*1.4).toFixed(1)+" ms";
-}
+  re.textContent=e.toFixed(4);rt.textContent=K;rl.textContent=(K*1.4).toFixed(1)+" ms";}
 paint();draw();addEventListener("resize",draw);
 
 /* roadmap */
 var PH=[
  {n:"Phase 0",t:"Design freeze",x:0,w:8,st:"done",gpu:"no GPU",
-  g:["The hypothesis, the single contribution and the success ladder are written down and frozen",
-     "Every falsification test is registered in advance and stays fixed"],
-  r:["A design that survives every outcome says very little. The length attribution test can end our central claim, and it stays in the plan."]},
+  g:["The hypothesis, the single contribution and the success ladder are frozen","Every falsification test is registered in advance"],
+  r:["A design that survives every outcome says little. The length attribution test can end our central claim, and it stays in."]},
  {n:"Phase 1",t:"Reproduction floor",x:8,w:16,st:"done",gpu:"8 to 16 GPU",
-  g:["Baselines reproduced with byte level provenance",
-     "Frozen tokenizer, matched policy and simulator rollout close end to end",
-     "<b>Gate cleared:</b> the variable length baseline lands inside the published band"],
-  r:["Reproduction can fail on engineering detail rather than on science, so numerical parity is checked before any training run.",
-     "<b>Outcome:</b> the floor holds, and it surfaced the finding the whole method answers."]},
+  g:["Baselines reproduced with byte-level provenance","<b>Gate cleared:</b> the reproduction lands inside the published band"],
+  r:["Reproduction can fail on engineering detail, so numerical parity is checked first.","<b>Outcome:</b> the floor holds, and it surfaced the finding the method answers."]},
  {n:"Phase 2",t:"Minimal method",x:24,w:16,st:"now",gpu:"16 to 24 GPU",
-  g:["Order, a forced halt, a shared vocabulary and the bounded projection all switch on",
-     "Total decodability reaches one hundred percent",
-     "<b>Gate:</b> prefix improvement becomes the rule"],
-  r:["Truncation noise can drown the halting signal, so truncation touches the decoder input alone and is ablated on its own.",
-     "Meaning supervision can cost reconstruction, so an action only arm runs beside it and downstream success decides."]},
+  g:["Order, a forced halt, a shared vocabulary and the projection switch on","Total decodability reaches one hundred percent","<b>Gate:</b> prefix improvement becomes the rule"],
+  r:["Truncation noise can mask the halting signal, so it touches the decoder input alone and is ablated on its own."]},
  {n:"Phase 3",t:"Many bodies",x:40,w:20,st:"next",gpu:"32 to 48 GPU",
-  g:["Balanced sampling across bodies, with the descriptor dropped at random",
-     "Leave one body out: freeze the vocabulary, adapt five percent",
-     "<b>Gate:</b> the held out body reaches ninety percent of full fine tuning"],
-  r:["The shared vocabulary can collapse toward an average body, so bodies are aligned analytically first and learning carries only the residual.",
-     "<b>Contingency:</b> below ninety percent we report the gap and call the work multi body."]},
+  g:["Balanced sampling with the descriptor dropped at random","Leave one body out: freeze the vocabulary, adapt five percent","<b>Gate:</b> the held-out body reaches ninety percent of full fine-tuning"],
+  r:["The vocabulary can collapse toward an average body, so bodies are aligned analytically first.","<b>Contingency:</b> below ninety percent we report the gap and call the work multi-body."]},
  {n:"Phase 4",t:"Full evaluation",x:60,w:20,st:"next",gpu:"16 to 32 GPU",
-  g:["Two benchmarks, three seeds, mean with standard error",
-     "Tokenizers and strong continuous controllers stand in one table, latency included",
-     "<b>Gate:</b> length attribution, uncertainty against body identity"],
-  r:["Rollouts are rendering bound at minutes per episode, so matrix cells run twenty rollouts, headline cells run fifty, and the budget is computed before submission."]},
+  g:["Two benchmarks, three seeds, mean with standard error","OAT and strong continuous controllers stand in one table, latency included","<b>Gate:</b> length attribution, uncertainty against body identity"],
+  r:["Rollouts are rendering bound, so matrix cells run twenty rollouts and headline cells run fifty, with the budget fixed before submission."]},
  {n:"Phase 5",t:"Dexterous frontier",x:80,w:20,st:"next",gpu:"up to 16 GPU",
-  g:["Entered once Phase 4 clears, so the single contribution stays sharp",
-     "A high degree hand asks whether a progressive code buys precision a fixed depth code misses",
-     "<b>Gate:</b> a measurable fine grained advantage"],
-  r:["The honest failure mode: order may matter little on a seven degree arm, where two tokens already say almost everything. Should the hand agree, that becomes a real finding and we publish it as one."]}
+  g:["Entered once Phase 4 clears, so the contribution stays sharp","A high-degree hand asks whether order buys precision a fixed code misses","<b>Gate:</b> a measurable fine-grained advantage"],
+  r:["The honest failure mode: order may matter little on a simple arm. Should the hand agree, that becomes a real finding and we publish it."]}
 ];
 var gt=document.getElementById("gt"),gd=document.getElementById("gd");
 PH.forEach(function(p,i){
@@ -879,17 +760,13 @@ PH.forEach(function(p,i){
     '" style="left:'+p.x+'%;width:'+p.w+'%;animation-delay:'+(i*90)+'ms">'+p.t+'</div></div>';
   row.onclick=function(){show(i,row)};
   row.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();show(i,row)}};
-  gt.appendChild(row);p.__el=row;
-});
+  gt.appendChild(row);p.__el=row;});
 function show(i,row){
   PH.forEach(function(p){p.__el.setAttribute("aria-expanded","false")});
-  row.setAttribute("aria-expanded","true");
-  var p=PH[i];
+  row.setAttribute("aria-expanded","true");var p=PH[i];
   gd.innerHTML='<div class="two"><div><h4>Checkpoints &middot; '+p.gpu+'</h4><ul>'+
-    p.g.map(function(x){return "<li>"+x+"</li>"}).join("")+
-    '</ul></div><div><h4>Difficulty and contingency</h4><ul>'+
-    p.r.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul></div></div>';
-}
+    p.g.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul></div><div><h4>Difficulty and contingency</h4><ul>'+
+    p.r.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul></div></div>';}
 show(2,PH[2].__el);
 
 var st=parseInt((location.hash||"").slice(1),10);

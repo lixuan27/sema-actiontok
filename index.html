@@ -3,46 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ActionTok · Plan</title>
-<meta name="description" content="ActionTok: a cross-embodiment action tokenizer built on OAT. Ordered, variable-length, shared across robots.">
+<title>ActionTok · Algorithm</title>
+<meta name="description" content="ActionTok: a cross-embodiment action tokenizer built on OAT. How variable length and cross-body are implemented, colour-coded by origin.">
 <style>
 :root{
   --paper:#F1EFE7; --paper2:#E7E4D9; --card:#FBFAF6; --wash:#EDEAE0;
   --ink:#141510; --ink2:#3A3B32; --rule:#171812; --hair:#C7C3B4;
-  --sage:#5C7150; --slate:#3F5C77;
-  --amber:#C8801A; --coral:#C93B22; --teal:#0E7E72; --violet:#5B44A0;
+  --oat:#4E6B43; --var:#C93B22; --body:#37658A; --amber:#C8801A; --teal:#0E7E72;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
 }
 @media (prefers-color-scheme:dark){:root{
   --paper:#17190F; --paper2:#111309; --card:#22251A; --wash:#1E2116;
   --ink:#F4F1E6; --ink2:#CFCCBE; --rule:#F4F1E6; --hair:#454A3A;
-  --sage:#A7C097; --slate:#88ADCE;
-  --amber:#F0B646; --coral:#F27556; --teal:#43CDBC; --violet:#A68FE6;
+  --oat:#A7C097; --var:#F27556; --body:#86ABD6; --amber:#F0B646; --teal:#43CDBC;
 }}
 :root[data-theme="dark"]{
   --paper:#17190F; --paper2:#111309; --card:#22251A; --wash:#1E2116;
   --ink:#F4F1E6; --ink2:#CFCCBE; --rule:#F4F1E6; --hair:#454A3A;
-  --sage:#A7C097; --slate:#88ADCE; --amber:#F0B646; --coral:#F27556; --teal:#43CDBC; --violet:#A68FE6;
+  --oat:#A7C097; --var:#F27556; --body:#86ABD6; --amber:#F0B646; --teal:#43CDBC;
 }
 :root[data-theme="light"]{
   --paper:#F1EFE7; --paper2:#E7E4D9; --card:#FBFAF6; --wash:#EDEAE0;
   --ink:#141510; --ink2:#3A3B32; --rule:#171812; --hair:#C7C3B4;
-  --sage:#5C7150; --slate:#3F5C77; --amber:#C8801A; --coral:#C93B22; --teal:#0E7E72; --violet:#5B44A0;
+  --oat:#4E6B43; --var:#C93B22; --body:#37658A; --amber:#C8801A; --teal:#0E7E72;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:22px;line-height:1.4;
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:22px;line-height:1.38;
   font-weight:700;-webkit-font-smoothing:antialiased;overflow:hidden}
 .deck{display:flex;height:100vh}
 .rail{width:64px;flex:0 0 64px;border-right:2px solid var(--rule);background:var(--paper2);
   display:flex;flex-direction:column;align-items:center;padding:22px 0;gap:18px}
-.logo{writing-mode:vertical-rl;font-size:17px;font-weight:800;letter-spacing:.28em;text-transform:uppercase}
+.logo{writing-mode:vertical-rl;font-size:17px;font-weight:800;letter-spacing:.26em;text-transform:uppercase}
 .dots{display:flex;flex-direction:column;gap:14px;margin:auto 0}
-.dot{all:unset;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);cursor:pointer;
-  position:relative;transition:transform .2s,background .2s}
+.dot{all:unset;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);cursor:pointer;position:relative;transition:transform .2s,background .2s}
 .dot:hover{transform:scale(1.3)}
-.dot:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
-.dot[aria-current="true"]{background:var(--coral);border-color:var(--coral)}
+.dot:focus-visible{outline:3px solid var(--var);outline-offset:3px}
+.dot[aria-current="true"]{background:var(--var);border-color:var(--var)}
 .dot b{position:absolute;left:24px;top:-8px;white-space:nowrap;font-size:15px;font-weight:800;color:var(--card);
   background:var(--ink);padding:4px 12px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .15s}
 .dot:hover b{opacity:1}
@@ -51,92 +48,107 @@ body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size
 .gh:hover{background:var(--ink);color:var(--paper)}
 
 .stage{flex:1;position:relative;overflow:hidden}
-.s{position:absolute;inset:0;padding:46px 62px 64px;display:flex;flex-direction:column;justify-content:center;
-  gap:24px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateY(16px);
+.s{position:absolute;inset:0;padding:40px 56px 60px;display:flex;flex-direction:column;justify-content:center;
+  gap:18px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateY(16px);
   transition:opacity .42s ease,transform .42s ease,visibility .42s}
 .s[data-on="1"]{opacity:1;visibility:visible;transform:none}
 .s>*{opacity:0;transform:translateY(14px)}
-.s[data-on="1"]>*{animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards}
-.s[data-on="1"]>*:nth-child(2){animation-delay:.1s}
-.s[data-on="1"]>*:nth-child(3){animation-delay:.2s}
+.s[data-on="1"]>*{animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards}
+.s[data-on="1"]>*:nth-child(2){animation-delay:.07s}
+.s[data-on="1"]>*:nth-child(3){animation-delay:.14s}
+.s[data-on="1"]>*:nth-child(4){animation-delay:.21s}
+.s[data-on="1"]>*:nth-child(5){animation-delay:.28s}
+.s[data-on="1"]>*:nth-child(6){animation-delay:.35s}
 @keyframes rise{to{opacity:1;transform:none}}
-.bar{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--coral);transition:width .42s}
+.bar{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--var);transition:width .42s}
 .pg{position:absolute;right:26px;bottom:18px;display:flex;gap:10px;align-items:center;z-index:4}
 .pg button{all:unset;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;
   border:2px solid var(--rule);background:var(--card);font-size:20px;font-weight:800}
 .pg button:hover{background:var(--ink);color:var(--paper)}
 .pg .c{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
 
-.lead{text-align:center;max-width:40ch;margin:0 auto;font-size:clamp(24px,2vw,32px);font-weight:800;line-height:1.2}
-.lead .hc{color:var(--coral)} .lead .hi{color:var(--teal)} .lead .ha{color:var(--amber)}
-.cap{text-align:center;font-size:19px;font-weight:700;margin:0;color:var(--ink)}
-.cap .hc{color:var(--coral)} .cap .hi{color:var(--teal)}
-.fig{display:flex;flex-direction:column;gap:16px}
+.lead{text-align:center;max-width:44ch;margin:0 auto;font-size:clamp(23px,1.9vw,30px);font-weight:800;line-height:1.2}
+.lead .o{color:var(--oat)} .lead .v{color:var(--var)} .lead .b{color:var(--body)}
+.cap{text-align:center;font-size:18px;font-weight:700;margin:0}
+.cap .v{color:var(--var)} .cap .b{color:var(--body)} .cap .o{color:var(--oat)}
+
+/* legend */
+.legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.lg{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:800;border:2px solid var(--rule);
+  border-radius:26px;padding:6px 15px;background:var(--card)}
+.lg i{width:15px;height:15px;border-radius:4px;display:block}
+.lg.oat i{background:var(--oat)} .lg.var i{background:var(--var)} .lg.body i{background:var(--body)}
+
+/* algorithm steps */
+.algo{display:flex;flex-direction:column;gap:11px;max-width:1000px;margin:0 auto;width:100%}
+.step{display:grid;grid-template-columns:118px 1fr;gap:18px;align-items:center;background:var(--card);
+  border:2px solid var(--hair);border-left:7px solid var(--c);border-radius:8px;padding:13px 18px}
+.step.oat{--c:var(--oat)} .step.var{--c:var(--var)} .step.body{--c:var(--body)}
+.step .tg{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--c);
+  border:2px solid var(--c);border-radius:6px;padding:6px 4px;text-align:center;line-height:1.12}
+.step .tx{font-size:20px;font-weight:800;line-height:1.28}
+.step .tx small{display:block;font-size:16px;font-weight:700;color:var(--ink2);margin-top:3px}
+.step .tx .code{color:var(--c)}
+.step .tx .why{color:var(--var)}
+
+/* loop block */
+.loop{background:var(--wash);border:2px dashed var(--var);border-radius:7px;padding:8px 14px;margin-top:7px;
+  font-size:17px;font-weight:700;line-height:1.5}
+.loop b{color:var(--var);font-weight:800}
+.loop .kw{color:var(--body);font-weight:800}
+
+/* loss terms */
+.loss{display:flex;flex-direction:column;gap:10px;max-width:1000px;margin:0 auto;width:100%}
+.lterm{display:grid;grid-template-columns:118px 1fr;gap:18px;align-items:center;background:var(--card);
+  border:2px solid var(--hair);border-left:7px solid var(--c);border-radius:8px;padding:12px 18px}
+.lterm.oat{--c:var(--oat)}.lterm.var{--c:var(--var)}.lterm.body{--c:var(--body)}
+.lterm .tg{font-size:13px;font-weight:800;text-transform:uppercase;color:var(--c);border:2px solid var(--c);
+  border-radius:6px;padding:6px 4px;text-align:center;line-height:1.12}
+.lterm .tx{font-size:19px;font-weight:800}
+.lterm .tx small{display:block;font-size:16px;font-weight:700;color:var(--ink2);margin-top:2px}
+
+/* svg */
 svg{width:100%;height:auto;display:block;overflow:visible}
 svg text{font-family:var(--serif);fill:var(--ink);font-weight:700}
-.tt{font-size:21px;font-weight:800}
-.td{font-size:16px;font-weight:700}
-.tk{font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.tt{font-size:20px;font-weight:800}.td{font-size:16px;font-weight:700}
+.tk{font-size:15px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .bx{fill:var(--card);stroke:var(--rule);stroke-width:2}
-.bx.sage{stroke:var(--sage);stroke-width:3}.bx.slate{stroke:var(--slate);stroke-width:3}
-.bx.teal{stroke:var(--teal);stroke-width:3}.bx.amber{stroke:var(--amber);stroke-width:3}
-.bx.coral{stroke:var(--coral);stroke-width:3}.bx.violet{stroke:var(--violet);stroke-width:3}
-.fill-teal{fill:var(--teal)}.fill-coral{fill:var(--coral)}.fill-amber{fill:var(--amber)}
-.fill-slate{fill:var(--slate)}.fill-violet{fill:var(--violet)}.fill-sage{fill:var(--sage)}
-.wt{fill:var(--teal);opacity:.12}.wa{fill:var(--amber);opacity:.15}.wc{fill:var(--coral);opacity:.1}.ws{fill:var(--slate);opacity:.1}.wv{fill:var(--violet);opacity:.1}
+.bx.oat{stroke:var(--oat);stroke-width:3}.bx.var{stroke:var(--var);stroke-width:3}.bx.body{stroke:var(--body);stroke-width:3}
+.wo{fill:var(--oat);opacity:.13}.wv{fill:var(--var);opacity:.11}.wb{fill:var(--body);opacity:.11}.wa{fill:var(--amber);opacity:.15}
+.f-oat{fill:var(--oat)}.f-var{fill:var(--var)}.f-body{fill:var(--body)}.f-amber{fill:var(--amber)}
 .w{stroke:var(--rule);stroke-width:2.4;fill:none;marker-end:url(#hd)}
-.w.teal{stroke:var(--teal);stroke-width:3;marker-end:url(#ht)}
-.w.coral{stroke:var(--coral);stroke-width:3;marker-end:url(#hc)}
 .w.dash{stroke-dasharray:6 6}
-.breathe{animation:br 2.6s ease-in-out infinite}
-@keyframes br{0%,100%{opacity:.5}50%{opacity:1}}
+.breathe{animation:br 2.6s ease-in-out infinite}@keyframes br{0%,100%{opacity:.5}50%{opacity:1}}
 
 /* prefix ruler */
-.cells{display:flex;gap:8px;max-width:620px;margin:0 auto;width:100%}
-.cell{flex:1;height:52px;border:2px solid var(--rule);border-radius:6px;background:var(--card);
+.cells{display:flex;gap:8px;max-width:640px;margin:0 auto;width:100%}
+.cell{flex:1;height:50px;border:2px solid var(--rule);border-radius:6px;background:var(--card);
   display:grid;place-items:center;cursor:pointer;font-size:16px;font-weight:800;transition:all .2s}
 .cell:hover{transform:translateY(-4px)}
-.cell:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
-.cell[data-live="1"]{background:var(--sage);border-color:var(--sage);color:var(--paper)}
-.cell[data-role="sem"][data-live="1"]{background:var(--teal);border-color:var(--teal)}
-.cell[data-role="stop"][data-live="1"]{background:var(--coral);border-color:var(--coral)}
+.cell:focus-visible{outline:3px solid var(--var);outline-offset:2px}
+.cell[data-live="1"]{background:var(--oat);border-color:var(--oat);color:var(--paper)}
+.cell[data-role="sem"][data-live="1"]{background:var(--body);border-color:var(--body)}
+.cell[data-role="stop"][data-live="1"]{background:var(--var);border-color:var(--var)}
 .cell[data-live="0"]{opacity:.34}
 canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
-.ro{display:flex;gap:32px;justify-content:center;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
-.ro b{color:var(--coral)}
+.ro{display:flex;gap:30px;justify-content:center;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.ro b{color:var(--var)}
 
-/* gantt */
-.gt{display:flex;flex-direction:column;gap:6px;max-width:1000px;margin:0 auto;width:100%}
-.gr{display:grid;grid-template-columns:130px 1fr;gap:16px;align-items:center;cursor:pointer;padding:5px;border-radius:6px}
-.gr:hover{background:var(--wash)}.gr:focus-visible{outline:3px solid var(--coral)}
-.gr .p{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
-.trk{position:relative;height:36px;border-left:3px solid var(--rule)}
-.blk{position:absolute;top:3px;height:30px;border-radius:5px;display:flex;align-items:center;padding:0 15px;
-  font-size:17px;font-weight:800;color:var(--paper);white-space:nowrap;transform-origin:left center;transform:scaleX(0);
-  animation:grow .7s cubic-bezier(.2,.7,.2,1) forwards}
-@keyframes grow{to{transform:scaleX(1)}}
-.blk.done{background:var(--sage)}.blk.now{background:var(--coral)}.blk.next{background:var(--slate)}
-.gr[aria-expanded="true"] .blk{box-shadow:0 0 0 3px var(--amber)}
-.gd{max-width:1000px;margin:12px auto 0;background:var(--card);border:2px solid var(--rule);border-left:5px solid var(--amber);
-  border-radius:6px;padding:16px 20px}
-.gd .two{display:grid;grid-template-columns:1fr 1fr;gap:26px}
-@media(max-width:820px){.gd .two{grid-template-columns:1fr}}
-.gd h4{margin:0 0 6px;font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--coral)}
-.gd ul{margin:0;padding-left:22px}.gd li{margin-bottom:5px;font-size:18px;font-weight:700}
-.status{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+/* data/test + status */
+.status{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--rule);border-radius:30px;
-  padding:8px 18px;font-size:18px;font-weight:800;background:var(--card)}
-.pill i{width:12px;height:12px;border-radius:50%}
-.pill b{color:var(--coral)}
+  padding:8px 17px;font-size:17px;font-weight:800;background:var(--card)}
+.pill i{width:12px;height:12px;border-radius:50%}.pill b{color:var(--var)}
 
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.s>*{opacity:1;transform:none}.blk{transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.s>*{opacity:1;transform:none}}
 @media(max-width:900px){
   body{overflow:auto;font-size:20px}.deck{flex-direction:column;height:auto}
   .rail{width:100%;flex-direction:row;padding:12px}.logo{writing-mode:horizontal-tb}
   .dots{flex-direction:row;margin:0 auto}.gh{writing-mode:horizontal-tb}
   .stage{overflow:visible}
-  .s{position:relative;inset:auto;opacity:1;visibility:visible;transform:none;padding:34px 20px;border-bottom:2px solid var(--rule);min-height:auto}
+  .s{position:relative;inset:auto;opacity:1;visibility:visible;transform:none;padding:32px 18px;border-bottom:2px solid var(--rule);min-height:auto}
   .s>*{opacity:1;transform:none}.pg{display:none}
+  .step,.lterm{grid-template-columns:92px 1fr;gap:12px}
 }
 </style>
 </head>
@@ -150,172 +162,130 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
   <main class="stage" id="stage">
   <svg width="0" height="0" style="position:absolute"><defs>
     <marker id="hd" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="var(--rule)"/></marker>
-    <marker id="ht" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="var(--teal)"/></marker>
-    <marker id="hc" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7z" fill="var(--coral)"/></marker>
   </defs></svg>
 
-  <!-- 1 · ON TOP OF OAT -->
-  <section class="s" data-t="On top of OAT">
-    <p class="lead">We keep <span class="hi">OAT's ordered, coarse-to-fine tokens</span>, and make them <span class="hc">variable-length</span> and <span class="ha">shared across robots</span>.</p>
-    <div class="fig">
-      <svg viewBox="0 0 1040 300" aria-label="OAT gives ordered coarse to fine tokens. We add a learned stop for variable length, one shared vocabulary across robots, and a legal decode of every prefix, giving ActionTok.">
-        <rect class="wt" x="20" y="90" width="250" height="120" rx="12"/>
-        <rect class="bx sage" x="20" y="90" width="250" height="120" rx="12"/>
-        <text class="tk fill-sage" x="44" y="128">OAT · baseline</text>
-        <text class="tt" x="44" y="164">ordered tokens</text>
-        <text class="td" x="44" y="192">coarse to fine</text>
-        <path class="w" d="M274 150 H330"/>
-        <text class="td" x="276" y="138">we add</text>
-        <rect class="wc" x="336" y="24" width="330" height="70" rx="10"/>
-        <rect class="bx coral" x="336" y="24" width="330" height="70" rx="10"/>
-        <text class="tt fill-coral" x="360" y="56">Variable length</text><text class="td" x="360" y="80">a learned stop, length from the motion</text>
-        <rect class="wa" x="336" y="114" width="330" height="70" rx="10"/>
-        <rect class="bx amber" x="336" y="114" width="330" height="70" rx="10"/>
-        <text class="tt fill-amber" x="360" y="146">One vocabulary</text><text class="td" x="360" y="170">shared across every robot</text>
-        <rect class="wv" x="336" y="204" width="330" height="70" rx="10"/>
-        <rect class="bx violet" x="336" y="204" width="330" height="70" rx="10"/>
-        <text class="tt fill-violet" x="360" y="236">Legal by design</text><text class="td" x="360" y="260">every prefix decodes in range</text>
-        <path class="w coral" d="M670 59 H720 Q740 59 740 150"/>
-        <path class="w amber" d="M670 149 H740"/>
-        <path class="w violet" d="M670 239 H720 Q740 239 740 150"/>
-        <path class="w" d="M740 150 H786"/>
-        <rect class="wa" x="792" y="90" width="230" height="120" rx="12"/>
-        <rect class="bx amber" x="792" y="90" width="230" height="120" rx="12"/>
-        <text class="tk fill-amber" x="816" y="128">Result</text>
-        <text class="tt" x="816" y="166">ActionTok</text>
-        <text class="td" x="816" y="194">one action language</text>
+  <!-- 1 · MAP + LEGEND -->
+  <section class="s" data-t="What comes from where">
+    <p class="lead">We keep <span class="o">OAT's ordered tokens</span>, and add a <span class="v">learned stop</span> and a <span class="b">shared cross-body interface</span>.</p>
+    <div class="legend">
+      <span class="lg oat"><i></i>OAT · baseline</span>
+      <span class="lg var"><i></i>Variable length · ours</span>
+      <span class="lg body"><i></i>Cross-body · ours</span>
+    </div>
+    <div>
+      <svg viewBox="0 0 1040 300" aria-label="A colour coded pipeline. Blue blocks lift a body into a shared canonical space and adapt back. Green blocks are OAT's ordered encoder and prefix-decodable decoder. Red blocks add the learned stop and the legal projection.">
+        <rect class="wb" x="16" y="96" width="150" height="108" rx="10"/><rect class="bx body" x="16" y="96" width="150" height="108" rx="10"/>
+        <text class="td f-body" x="34" y="134">canonical</text><text class="td f-body" x="34" y="158">lift + χ</text><text class="td" x="34" y="186">any body → u</text>
+        <path class="w" d="M166 150 H196"/>
+        <rect class="wo" x="202" y="96" width="150" height="108" rx="10"/><rect class="bx oat" x="202" y="96" width="150" height="108" rx="10"/>
+        <text class="td f-oat" x="220" y="134">ordered</text><text class="td f-oat" x="220" y="158">encoder</text><text class="td" x="220" y="186">FSQ + order</text>
+        <path class="w" d="M352 150 H382"/>
+        <rect class="wv" x="388" y="96" width="150" height="108" rx="10"/><rect class="bx var" x="388" y="96" width="150" height="108" rx="10"/>
+        <text class="td f-var" x="406" y="134">stop loop</text><text class="td f-var" x="406" y="158">picks length</text><text class="td" x="406" y="186">z until stop</text>
+        <path class="w" d="M538 150 H568"/>
+        <!-- the code, tri-colour -->
+        <rect class="bx body" x="576" y="112" width="72" height="44" rx="6"/><text class="td f-body" x="592" y="140">intent</text>
+        <rect class="bx oat" x="652" y="112" width="52" height="44" rx="6"/><text class="td" x="668" y="140">·</text>
+        <rect class="bx oat" x="708" y="112" width="52" height="44" rx="6"/><text class="td" x="724" y="140">·</text>
+        <rect class="bx var" x="764" y="112" width="66" height="44" rx="6"/><text class="td f-var" x="778" y="140">stop</text>
+        <text class="td f-body" x="576" y="102">shared</text><text class="td f-var" x="764" y="102">on demand</text>
+        <text class="tk f-oat" x="620" y="184">ordered</text>
+        <path class="w dash" d="M700 156 V196 H120 V214"/>
+        <!-- decode row -->
+        <rect class="wo" x="16" y="220" width="220" height="66" rx="9"/><rect class="bx oat" x="16" y="220" width="220" height="66" rx="9"/>
+        <text class="td f-oat" x="36" y="248">shared decoder</text><text class="td" x="36" y="272">reads any prefix</text>
+        <path class="w" d="M236 253 H266"/>
+        <rect class="wv" x="272" y="220" width="200" height="66" rx="9"/><rect class="bx var" x="272" y="220" width="200" height="66" rx="9"/>
+        <text class="td f-var" x="292" y="248">projection</text><text class="td" x="292" y="272">always legal</text>
+        <path class="w" d="M472 253 H502"/>
+        <rect class="wb" x="508" y="220" width="200" height="66" rx="9"/><rect class="bx body" x="508" y="220" width="200" height="66" rx="9"/>
+        <text class="td f-body" x="528" y="248">body adapter</text><text class="td" x="528" y="272">≤5% → native</text>
+        <path class="w" d="M708 253 H738"/>
+        <rect class="bx" x="744" y="220" width="180" height="66" rx="9"/>
+        <text class="td" x="764" y="248">robot</text><text class="td" x="764" y="272">executes</text>
       </svg>
     </div>
-    <p class="cap">A cross-embodiment tokenizer that a policy pre-trains in, then carries to a new robot with a tiny adapter.</p>
+    <p class="cap"><span class="b">Prefix = shared, cross-body.</span>&nbsp;&nbsp;<span class="v">Tail = on demand, variable length.</span>&nbsp;&nbsp;<span class="o">Order = OAT.</span></p>
   </section>
 
-  <!-- 2 · VARIABLE LENGTH + ORDERED -->
-  <section class="s" data-t="Variable length and order">
-    <p class="lead">Three mechanisms give the tokens <span class="hi">order</span>, a <span class="hc">chosen length</span>, and a <span style="color:var(--violet)">legal decode</span>.</p>
-    <div class="fig">
-      <svg viewBox="0 0 1040 150" aria-label="Nested dropout builds order, a forced stop gives real variable length, and a bounded projection keeps every prefix legal.">
-        <rect class="ws" x="16" y="20" width="320" height="112" rx="12"/>
-        <rect class="bx sage" x="16" y="20" width="320" height="112" rx="12"/>
-        <text class="tk fill-sage" x="38" y="54">Order</text>
-        <text class="td" x="38" y="88">cut the tail, still reconstruct,</text>
-        <text class="td" x="38" y="112">so early tokens carry the gesture</text>
-        <rect class="wc" x="360" y="20" width="320" height="112" rx="12"/>
-        <rect class="bx coral" x="360" y="20" width="320" height="112" rx="12"/>
-        <text class="tk fill-coral" x="382" y="54">Length</text>
-        <text class="td" x="382" y="88">a learned stop the model must place,</text>
-        <text class="td" x="382" y="112">short for easy motions, long for hard</text>
-        <rect class="wv" x="704" y="20" width="320" height="112" rx="12"/>
-        <rect class="bx violet" x="704" y="20" width="320" height="112" rx="12"/>
-        <text class="tk fill-violet" x="726" y="54">Legal</text>
-        <text class="td" x="726" y="88">mask, clamp and rotate the output,</text>
-        <text class="td" x="726" y="112">so any prefix stays in range</text>
-      </svg>
-      <div class="cells" id="cells" role="group" aria-label="Prefix length"></div>
-      <canvas id="cv" width="1000" height="230" aria-label="A trajectory reconstructed from the chosen token prefix, showing coarse to fine refinement."></canvas>
-      <div class="ro"><span>error <b id="ro-e">0</b></span><span>tokens <b id="ro-t">3</b></span><span>decode <b id="ro-l">4 ms</b></span></div>
+  <!-- 2 · ENCODE -->
+  <section class="s" data-t="Encode algorithm">
+    <p class="lead">Encoding: <span class="b">lift the body</span>, run <span class="o">OAT's ordered encoder</span>, and let the model <span class="v">choose when to stop</span>.</p>
+    <div class="legend">
+      <span class="lg body"><i></i>Cross-body</span><span class="lg oat"><i></i>OAT</span><span class="lg var"><i></i>Variable length</span>
     </div>
-    <p class="cap">Drag the strip: one token holds the intent, the tail buys precision, <span class="hc">fewer tokens run faster</span>.</p>
-  </section>
-
-  <!-- 3 · CROSS-ROBOT -->
-  <section class="s" data-t="Cross-robot">
-    <p class="lead">One encoder for every body. A <span class="hc">five-percent adapter</span> carries it to a robot it has never seen.</p>
-    <div class="fig">
-      <svg viewBox="0 0 1040 320" aria-label="Different bodies are lifted into one canonical space with a descriptor, share one encoder and vocabulary and decoder, and reach native commands through per body adapters. Leaving one body out freezes the vocabulary and decoder and trains only the adapter.">
-        <text class="tk fill-slate" x="20" y="40">Bodies</text>
-        <g class="breathe">
-          <rect class="bx slate" x="20" y="52" width="176" height="40" rx="6"/><text class="td" x="38" y="77">seven-degree arm</text>
-          <rect class="bx slate" x="20" y="104" width="176" height="40" rx="6"/><text class="td" x="38" y="129">bimanual rig, 14-D</text>
-          <rect class="bx slate" x="20" y="156" width="176" height="40" rx="6"/><text class="td" x="38" y="181">dexterous hand</text>
-        </g>
-        <path class="w" d="M198 72 Q214 72 218 116"/><path class="w" d="M198 124 H218"/><path class="w" d="M198 176 Q214 176 218 132"/>
-        <rect class="wt" x="224" y="74" width="180" height="100" rx="10"/>
-        <rect class="bx teal" x="224" y="74" width="180" height="100" rx="10"/>
-        <text class="tt fill-teal" x="244" y="112">canonical lift</text>
-        <text class="td" x="244" y="140">frames, units, rate</text>
-        <text class="td" x="244" y="162">plus a descriptor</text>
-        <path class="w teal" d="M406 124 H442"/>
-        <rect class="wa" x="448" y="74" width="180" height="100" rx="10"/>
-        <rect class="bx amber" x="448" y="74" width="180" height="100" rx="10"/>
-        <text class="tt fill-amber" x="468" y="112">shared encoder</text>
-        <text class="td" x="468" y="140">one vocabulary</text>
-        <text class="td" x="468" y="162">for all bodies</text>
-        <path class="w" d="M630 124 H666"/>
-        <rect class="bx" x="672" y="74" width="170" height="100" rx="10"/>
-        <text class="tt" x="692" y="112">shared decoder</text>
-        <text class="td" x="692" y="148">canonical motion</text>
-        <path class="w" d="M844 124 H880"/>
-        <rect class="ws" x="886" y="74" width="140" height="100" rx="10"/>
-        <rect class="bx slate" x="886" y="74" width="140" height="100" rx="10"/>
-        <text class="tt fill-slate" x="906" y="112">adapter</text>
-        <text class="td" x="906" y="140">native</text><text class="td" x="906" y="162">command</text>
-        <rect class="wc" x="224" y="214" width="802" height="82" rx="10"/>
-        <rect class="bx coral" x="224" y="214" width="802" height="82" rx="10"/>
-        <text class="tk fill-coral" x="248" y="248">Leave one body out</text>
-        <text class="td" x="248" y="278">freeze the vocabulary and decoder, train only the 5% adapter, target 90% of full fine-tuning</text>
-        <path class="w coral dash" d="M538 174 V210"/><path class="w coral dash" d="M757 174 V210"/><path class="w coral dash" d="M956 174 V210"/>
-      </svg>
+    <div class="algo">
+      <div class="step body"><div class="tg">Cross&#8209;body</div><div class="tx">Lift the native action to a shared canonical space: <span class="code">u = B<sub>e</sub>(a)</span>.<small>Frames, units and control rate are solved in closed form. Attach a descriptor χ and a channel mask. <span class="why">Why: coordinate transforms are physics, so the model never spends capacity relearning them.</span></small></div></div>
+      <div class="step oat"><div class="tx" style="grid-column:2"><b>Register encoder + FSQ</b> turn u into discrete codes over <b>one shared vocabulary</b>.<small>OAT's quantizer, unchanged. Nested dropout during training cuts the tail and still forces reconstruction, so early codes carry the coarse motion.</small></div><div class="tg">OAT</div></div>
+      <div class="step var"><div class="tg">Variable length</div><div class="tx">Read the codes out as a sequence with a <b>stop symbol</b>, chosen step by step:
+        <div class="loop"><span class="kw">for</span> t = 1 … H:&nbsp; score vocabulary + <b>stop</b><br>
+        &nbsp;&nbsp;t = 1 &rarr; <b>forbid stop</b> &nbsp;(intent must lead)<br>
+        &nbsp;&nbsp;t = H &rarr; <b>force stop</b> &nbsp;(the code always closes)<br>
+        &nbsp;&nbsp;sample z<sub>t</sub> ; &nbsp;<span class="kw">break</span> when stop is chosen</div>
+        <small style="margin-top:8px"><span class="why">Why the two rules: a guaranteed head token gives the shared prefix meaning; a guaranteed close keeps every code serialised. Length between them is learned.</span></small></div></div>
     </div>
-    <p class="cap">Bodies differ by geometry we solve in closed form, and by a residual the small adapter learns.</p>
+    <p class="cap">Output: <span class="b">z = [ intent</span>, detail, … , <span class="v">stop ]</span> &mdash; the model sets the length per sample.</p>
   </section>
 
-  <!-- 4 · DATA + TEST -->
-  <section class="s" data-t="Data and test">
-    <p class="lead">Train the tokenizer on <span class="hi">actions alone</span>. Judge it by <span class="hc">closed-loop success</span> under a matched policy.</p>
-    <div class="fig">
-      <svg viewBox="0 0 1040 330" aria-label="Training data feeds tokenizer pre training on actions only. The tokenizer is frozen into a matched autoregressive policy, evaluated by simulator rollout, and compared against OAT and other tokenizers across three test layers.">
-        <text class="tk fill-teal" x="20" y="36">Training data</text>
-        <rect class="wt" x="20" y="48" width="230" height="150" rx="10"/>
-        <rect class="bx teal" x="20" y="48" width="230" height="150" rx="10"/>
-        <text class="td" x="40" y="82">LIBERO-90  ·  pre-train</text>
-        <text class="td" x="40" y="110">LIBERO-10  ·  downstream</text>
-        <text class="td" x="40" y="138">RoboMimic  ·  body #2</text>
-        <text class="td" x="40" y="166">then Bridge · DROID</text>
-        <text class="td" x="40" y="188">· RoboTwin (bimanual)</text>
-        <path class="w teal" d="M252 123 H288"/>
-        <rect class="wa" x="294" y="48" width="210" height="150" rx="10"/>
-        <rect class="bx amber" x="294" y="48" width="210" height="150" rx="10"/>
-        <text class="tt fill-amber" x="314" y="90">pre-train</text>
-        <text class="td" x="314" y="124">actions only</text>
-        <text class="td" x="314" y="150">no simulator</text>
-        <text class="td" x="314" y="176">a small model</text>
-        <path class="w" d="M506 123 H542"/>
-        <rect class="wc" x="548" y="48" width="210" height="150" rx="10"/>
-        <rect class="bx coral" x="548" y="48" width="210" height="150" rx="10"/>
-        <text class="tt fill-coral" x="568" y="90">freeze</text>
-        <text class="td" x="568" y="124">matched policy:</text>
-        <text class="td" x="568" y="150">same net, data,</text>
-        <text class="td" x="568" y="176">budget for all</text>
-        <path class="w coral" d="M760 123 H796"/>
-        <rect class="bx" x="802" y="48" width="220" height="150" rx="10"/>
-        <text class="tt" x="822" y="90">rollout</text>
-        <text class="td" x="822" y="124">simulator success</text>
-        <text class="td" x="822" y="150">three seeds</text>
-        <text class="td" x="822" y="176">the verdict</text>
-        <text class="tk" x="20" y="248">Compared against</text>
-        <rect class="ws" x="20" y="260" width="484" height="54" rx="8"/>
-        <rect class="bx" x="20" y="260" width="484" height="54" rx="8"/>
-        <text class="td" x="40" y="293">OAT  ·  binning  ·  frequency codes  ·  vector quantization</text>
-        <text class="tk" x="548" y="248">Three test layers</text>
-        <rect class="wv" x="548" y="260" width="474" height="54" rx="8"/>
-        <rect class="bx violet" x="548" y="260" width="474" height="54" rx="8"/>
-        <text class="td" x="568" y="293">rate–distortion  ·  decodability  ·  leave-one-body-out</text>
+  <!-- 3 · DECODE + CURVE -->
+  <section class="s" data-t="Decode algorithm">
+    <p class="lead">Decoding: any prefix goes through <span class="o">one shared decoder</span>, a <span class="v">legal projection</span>, and a <span class="b">per-body adapter</span>.</p>
+    <div class="algo" style="max-width:1000px">
+      <div class="step oat"><div class="tg">OAT</div><div class="tx"><b>Shared decoder reads any prefix</b> <span class="code">z<sub>1:k</sub></span> &rarr; canonical motion.<small>Prefix-decodability is exactly what OAT's nested dropout trains, so stopping early still yields a usable coarse action, never garbage.</small></div></div>
+      <div class="step var"><div class="tg">Variable length</div><div class="tx"><b>Bounded projection:</b> mask &rarr; clamp &rarr; re-orthogonalise rotation.<small><span class="why">Why: this makes wherever the stop landed a legal command. Any prefix, even a random one, decodes in range.</span></small></div></div>
+      <div class="step body"><div class="tg">Cross&#8209;body</div><div class="tx"><b>Per-body adapter</b> <span class="code">a = A<sub>e</sub>(·)</span>, ≤5% of the weights &rarr; this robot's native command.<small>On an unseen robot, this is the only part retrained.</small></div></div>
+    </div>
+    <div class="cells" id="cells" role="group" aria-label="Prefix length"></div>
+    <canvas id="cv" width="1000" height="180" aria-label="A trajectory reconstructed from the chosen token prefix."></canvas>
+    <p class="cap">Drag the strip: <span class="b">one token holds the intent</span>, the tail refines, <span class="v">fewer tokens decode faster</span>.</p>
+  </section>
+
+  <!-- 4 · TRAINING -->
+  <section class="s" data-t="Training objective">
+    <p class="lead">One objective. Each term is coloured by what it makes true.</p>
+    <div class="legend">
+      <span class="lg oat"><i></i>OAT</span><span class="lg var"><i></i>Variable length</span><span class="lg body"><i></i>Cross-body</span>
+    </div>
+    <div class="loss">
+      <div class="lterm"><div class="tg" style="--c:var(--ink);color:var(--ink);border-color:var(--ink)">base</div><div class="tx">Reconstruct the action from the full code.<small>The anchor: the tokens must still describe the motion.</small></div></div>
+      <div class="lterm var"><div class="tg">Variable length</div><div class="tx">+ a cost for every token emitted.<small><span style="color:var(--var)">Why it is the key term: our first version left tokens free, so 94.7% never stopped. Once a token must pay, the model stops as soon as more tokens stop reducing error.</span></small></div></div>
+      <div class="lterm oat"><div class="tg">OAT</div><div class="tx">+ every prefix must reconstruct (nested dropout).<small>Builds the coarse-to-fine order and keeps early stopping usable.</small></div></div>
+      <div class="lterm var"><div class="tg">Variable length</div><div class="tx">+ more tokens should not be worse (soft, verified).<small>The monotone prefix property, checked rather than forced.</small></div></div>
+      <div class="lterm body"><div class="tg">Cross&#8209;body</div><div class="tx">Train jointly over bodies + drop the descriptor at random + leave one body out.<small>Descriptor dropout rehearses the zero-shot body; leave-one-out freezes the vocabulary and decoder and adapts only 5%.</small></div></div>
+    </div>
+    <p class="cap">The stop is non-differentiable, so reconstruction and cost train as a <span class="v">sampled variable-length rollout</span>.</p>
+  </section>
+
+  <!-- 5 · DATA / TEST / STATUS -->
+  <section class="s" data-t="Data, test, status">
+    <p class="lead">Train on <span class="b">actions alone</span>. Judge by <span class="v">closed-loop success</span> under a matched policy.</p>
+    <div>
+      <svg viewBox="0 0 1040 210" aria-label="Data feeds tokenizer pre-training on actions only, the tokenizer is frozen into a matched policy, and evaluated by simulator rollout, compared against OAT across three test layers.">
+        <rect class="wb" x="16" y="20" width="228" height="120" rx="10"/><rect class="bx body" x="16" y="20" width="228" height="120" rx="10"/>
+        <text class="tk f-body" x="36" y="48">Training data</text>
+        <text class="td" x="36" y="76">LIBERO-90 · pre-train</text><text class="td" x="36" y="100">LIBERO-10 · downstream</text>
+        <text class="td" x="36" y="124">RoboMimic; then Bridge,</text>
+        <text class="td" x="36" y="146" style="font-size:14px">DROID, RoboTwin (bimanual)</text>
+        <path class="w" d="M244 90 H278"/>
+        <rect class="wo" x="284" y="20" width="196" height="120" rx="10"/><rect class="bx oat" x="284" y="20" width="196" height="120" rx="10"/>
+        <text class="tk f-oat" x="304" y="48">Pre-train</text>
+        <text class="td" x="304" y="82">actions only</text><text class="td" x="304" y="108">no simulator</text><text class="td" x="304" y="134">a small model</text>
+        <path class="w" d="M480 90 H514"/>
+        <rect class="wv" x="520" y="20" width="196" height="120" rx="10"/><rect class="bx var" x="520" y="20" width="196" height="120" rx="10"/>
+        <text class="tk f-var" x="540" y="48">Freeze</text>
+        <text class="td" x="540" y="82">matched policy:</text><text class="td" x="540" y="108">same net, data,</text><text class="td" x="540" y="134">budget for all</text>
+        <path class="w" d="M716 90 H750"/>
+        <rect class="wa" x="756" y="20" width="268" height="120" rx="10"/><rect class="bx" x="756" y="20" width="268" height="120" rx="10" style="stroke:var(--amber);stroke-width:3"/>
+        <text class="tk f-amber" x="776" y="48">Rollout = verdict</text>
+        <text class="td" x="776" y="82">simulator success</text><text class="td" x="776" y="108">three seeds</text>
+        <text class="td" x="776" y="134">vs OAT · binning · VQ</text>
+        <text class="td" x="16" y="184"><tspan class="f-body" font-weight="800">Three test layers:</tspan>&nbsp; rate–distortion &nbsp;·&nbsp; total decodability &nbsp;·&nbsp; leave-one-body-out</text>
       </svg>
     </div>
-    <p class="cap">The only variable across a comparison is the action representation.</p>
-  </section>
-
-  <!-- 5 · PLAN -->
-  <section class="s" data-t="Plan and status">
-    <p class="lead">Six phases, each with a gate. <span class="hi">The floor is reproduced; the contribution is next.</span></p>
-    <div class="fig">
-      <div class="gt" id="gt"></div>
-      <div class="gd" id="gd"></div>
-      <div class="status">
-        <span class="pill"><i style="background:var(--sage)"></i>Reproduced <b>&nbsp;0.72</b>&nbsp;vs 0.75, zero invalid decodes</span>
-        <span class="pill"><i style="background:var(--coral)"></i>Now: force order and the stop</span>
-        <span class="pill"><i style="background:var(--slate)"></i>Next gate: cross-body transfer</span>
-      </div>
+    <div class="status">
+      <span class="pill"><i style="background:var(--oat)"></i>Reproduced <b>&nbsp;0.72</b>&nbsp;vs 0.75, zero invalid decodes</span>
+      <span class="pill"><i style="background:var(--var)"></i>Now: force order and the stop</span>
+      <span class="pill"><i style="background:var(--body)"></i>Next gate: cross-body transfer ≥ 90%</span>
     </div>
   </section>
 
@@ -339,8 +309,7 @@ function go(i){
   i=Math.max(0,Math.min(S.length-1,i));i0=i;
   S.forEach(function(s,j){s.dataset.on=j===i?"1":"0";s.__d.setAttribute("aria-current",j===i?"true":"false");s.scrollTop=0;});
   bar.style.width=((i+1)/S.length*100)+"%";
-  c.textContent=(i+1)+" / "+S.length;history.replaceState(null,"","#"+(i+1));
-}
+  c.textContent=(i+1)+" / "+S.length;history.replaceState(null,"","#"+(i+1));}
 document.getElementById("next").onclick=function(){go(i0+1)};
 document.getElementById("prev").onclick=function(){go(i0-1)};
 document.addEventListener("keydown",function(e){
@@ -353,7 +322,6 @@ document.getElementById("theme").onclick=function(){
 
 /* prefix ruler */
 var H=8,K=3,cells=document.getElementById("cells"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
-var re=document.getElementById("ro-e"),rt=document.getElementById("ro-t"),rl=document.getElementById("ro-l");
 for(var q=0;q<H;q++){(function(n){
   var b=document.createElement("button");b.className="cell";b.type="button";
   b.onclick=function(){setK(n+1)};b.onmouseenter=function(e){if(e.buttons===1)setK(n+1)};b.onfocus=function(){setK(n+1)};
@@ -374,58 +342,18 @@ function R(k){var m=[0,1,2,3,4,5,6,6][Math.max(0,Math.min(7,k-1))],o=[];
     var y=.5;if(k===1){y+=.26*Math.sin(u*Math.PI);}else{for(var j=0;j<e.length;j++){if(j<m)y+=e[j];}}
     o.push([u*.88+.05,y]);}return o;}
 function V(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
-function draw(){var W=cv.width,Hh=cv.height,p=26;ctx.clearRect(0,0,W,Hh);
+function draw(){var W=cv.width,Hh=cv.height,p=22;ctx.clearRect(0,0,W,Hh);
   function P(a){return [p+a[0]*(W-2*p),Hh-p-a[1]*(Hh-2*p)];}
   ctx.strokeStyle=V("--hair");ctx.lineWidth=1.5;ctx.globalAlpha=.8;
-  for(var g=0;g<=3;g++){var y=p+g*(Hh-2*p)/3;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
+  for(var g=0;g<=2;g++){var y=p+g*(Hh-2*p)/2;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(W-p,y);ctx.stroke();}
   ctx.globalAlpha=1;
   function ln(pts){ctx.beginPath();pts.forEach(function(a,j){var b=P(a);if(j){ctx.lineTo(b[0],b[1])}else{ctx.moveTo(b[0],b[1])}});ctx.stroke();}
   ctx.setLineDash([7,7]);ctx.lineWidth=3;ctx.strokeStyle=V("--ink2");ln(T);ctx.setLineDash([]);
-  var r=R(K);ctx.lineWidth=6;ctx.lineJoin="round";ctx.strokeStyle=K===1?V("--teal"):V("--sage");ln(r);
+  var r=R(K);ctx.lineWidth=6;ctx.lineJoin="round";ctx.strokeStyle=K===1?V("--body"):V("--oat");ln(r);
   var a=P(T[N-1]),b=P(r[N-1]);
   ctx.fillStyle=V("--ink2");ctx.beginPath();ctx.arc(a[0],a[1],5,0,6.3);ctx.fill();
-  ctx.fillStyle=V("--coral");ctx.beginPath();ctx.arc(b[0],b[1],7,0,6.3);ctx.fill();
-  ctx.font="800 17px Georgia, serif";ctx.fillStyle=V("--ink2");ctx.fillText("expert",p,20);
-  ctx.fillStyle=K===1?V("--teal"):V("--sage");ctx.fillText("prefix "+K,p+110,20);
-  var e=0;for(var t2=0;t2<N;t2++){e+=Math.abs(T[t2][1]-r[t2][1]);}e/=N;
-  re.textContent=e.toFixed(4);rt.textContent=K;rl.textContent=(K*1.4).toFixed(1)+" ms";}
+  ctx.fillStyle=V("--var");ctx.beginPath();ctx.arc(b[0],b[1],7,0,6.3);ctx.fill();}
 paint();draw();addEventListener("resize",draw);
-
-/* roadmap */
-var PH=[
- {n:"Phase 0",t:"Design freeze",x:0,w:8,st:"done",gpu:"no GPU",
-  g:["Hypothesis, single contribution and success ladder frozen","Falsification tests registered in advance"],
-  r:["The length attribution test can end our central claim, and it stays in the plan."]},
- {n:"Phase 1",t:"Reproduction",x:8,w:16,st:"done",gpu:"8 to 16 GPU",
-  g:["Baselines reproduced with byte-level provenance","<b>Gate cleared:</b> reproduction lands in the published band"],
-  r:["Numerical parity checked before any training.","Outcome: the floor holds and surfaced the finding the method answers."]},
- {n:"Phase 2",t:"Minimal method",x:24,w:16,st:"now",gpu:"16 to 24 GPU",
-  g:["Order, forced stop, shared vocabulary and projection switch on","Total decodability reaches one hundred percent","<b>Gate:</b> prefix improvement becomes the rule"],
-  r:["Truncation touches the decoder input alone, so it cannot mask the stop signal."]},
- {n:"Phase 3",t:"Many bodies",x:40,w:20,st:"next",gpu:"32 to 48 GPU",
-  g:["Balanced sampling, descriptor dropped at random","Leave one body out: freeze vocabulary, adapt five percent","<b>Gate:</b> held-out body reaches ninety percent of full fine-tuning"],
-  r:["Bodies aligned analytically first, so the vocabulary keeps only the residual.","Below ninety percent we report the gap and call the work multi-body."]},
- {n:"Phase 4",t:"Full evaluation",x:60,w:20,st:"next",gpu:"16 to 32 GPU",
-  g:["Two benchmarks, three seeds, mean with standard error","OAT and continuous controllers in one table, latency included","<b>Gate:</b> length follows uncertainty, not body identity"],
-  r:["Twenty rollouts per matrix cell, fifty for headline cells, budget fixed before submission."]},
- {n:"Phase 5",t:"Dexterous frontier",x:80,w:20,st:"next",gpu:"up to 16 GPU",
-  g:["Entered once Phase 4 clears","A high-degree hand tests whether order buys real precision","<b>Gate:</b> a measurable fine-grained advantage"],
-  r:["Should the hand show no gain, that is a real finding and we publish it."]}
-];
-var gt=document.getElementById("gt"),gd=document.getElementById("gd");
-PH.forEach(function(p,i){
-  var row=document.createElement("div");row.className="gr";row.tabIndex=0;row.setAttribute("role","button");
-  row.innerHTML='<span class="p">'+p.n+'</span><div class="trk"><div class="blk '+p.st+
-    '" style="left:'+p.x+'%;width:'+p.w+'%;animation-delay:'+(i*90)+'ms">'+p.t+'</div></div>';
-  row.onclick=function(){show(i,row)};
-  row.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();show(i,row)}};
-  gt.appendChild(row);p.__el=row;});
-function show(i,row){
-  PH.forEach(function(p){p.__el.setAttribute("aria-expanded","false")});row.setAttribute("aria-expanded","true");var p=PH[i];
-  gd.innerHTML='<div class="two"><div><h4>Checkpoints &middot; '+p.gpu+'</h4><ul>'+
-    p.g.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul></div><div><h4>Difficulty and contingency</h4><ul>'+
-    p.r.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul></div></div>';}
-show(2,PH[2].__el);
 
 var st=parseInt((location.hash||"").slice(1),10);
 go(isNaN(st)?0:st-1);

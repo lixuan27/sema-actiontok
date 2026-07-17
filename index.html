@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ActionTok · Algorithm</title>
-<meta name="description" content="ActionTok: a cross-embodiment action tokenizer built on OAT. How variable length and cross-body are implemented, colour-coded by origin.">
+<title>ActionTok · Algorithm & Results</title>
+<meta name="description" content="ActionTok: a cross-embodiment action tokenizer built on OAT. Ordered, variable-length, shared across robots — with the intrinsic targets now met.">
 <style>
 :root{
   --paper:#F1EFE7; --paper2:#E7E4D9; --card:#FBFAF6; --wash:#EDEAE0;
@@ -67,19 +67,17 @@ body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size
 .pg button:hover{background:var(--ink);color:var(--paper)}
 .pg .c{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
 
-.lead{text-align:center;max-width:44ch;margin:0 auto;font-size:clamp(23px,1.9vw,30px);font-weight:800;line-height:1.2}
-.lead .o{color:var(--oat)} .lead .v{color:var(--var)} .lead .b{color:var(--body)}
+.lead{text-align:center;max-width:46ch;margin:0 auto;font-size:clamp(23px,1.9vw,30px);font-weight:800;line-height:1.2}
+.lead .o{color:var(--oat)} .lead .v{color:var(--var)} .lead .b{color:var(--body)} .lead .a{color:var(--amber)}
 .cap{text-align:center;font-size:18px;font-weight:700;margin:0}
-.cap .v{color:var(--var)} .cap .b{color:var(--body)} .cap .o{color:var(--oat)}
+.cap .v{color:var(--var)} .cap .b{color:var(--body)} .cap .o{color:var(--oat)} .cap .a{color:var(--amber)}
 
-/* legend */
 .legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .lg{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:800;border:2px solid var(--rule);
   border-radius:26px;padding:6px 15px;background:var(--card)}
 .lg i{width:15px;height:15px;border-radius:4px;display:block}
 .lg.oat i{background:var(--oat)} .lg.var i{background:var(--var)} .lg.body i{background:var(--body)}
 
-/* algorithm steps */
 .algo{display:flex;flex-direction:column;gap:11px;max-width:1000px;margin:0 auto;width:100%}
 .step{display:grid;grid-template-columns:118px 1fr;gap:18px;align-items:center;background:var(--card);
   border:2px solid var(--hair);border-left:7px solid var(--c);border-radius:8px;padding:13px 18px}
@@ -88,16 +86,12 @@ body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size
   border:2px solid var(--c);border-radius:6px;padding:6px 4px;text-align:center;line-height:1.12}
 .step .tx{font-size:20px;font-weight:800;line-height:1.28}
 .step .tx small{display:block;font-size:16px;font-weight:700;color:var(--ink2);margin-top:3px}
-.step .tx .code{color:var(--c)}
-.step .tx .why{color:var(--var)}
+.step .tx .code{color:var(--c)} .step .tx .why{color:var(--var)}
 
-/* loop block */
 .loop{background:var(--wash);border:2px dashed var(--var);border-radius:7px;padding:8px 14px;margin-top:7px;
   font-size:17px;font-weight:700;line-height:1.5}
-.loop b{color:var(--var);font-weight:800}
-.loop .kw{color:var(--body);font-weight:800}
+.loop b{color:var(--var);font-weight:800} .loop .kw{color:var(--body);font-weight:800}
 
-/* loss terms */
 .loss{display:flex;flex-direction:column;gap:10px;max-width:1000px;margin:0 auto;width:100%}
 .lterm{display:grid;grid-template-columns:118px 1fr;gap:18px;align-items:center;background:var(--card);
   border:2px solid var(--hair);border-left:7px solid var(--c);border-radius:8px;padding:12px 18px}
@@ -107,7 +101,24 @@ body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size
 .lterm .tx{font-size:19px;font-weight:800}
 .lterm .tx small{display:block;font-size:16px;font-weight:700;color:var(--ink2);margin-top:2px}
 
-/* svg */
+/* results table */
+.rtab{width:100%;max-width:1000px;margin:0 auto;border-collapse:separate;border-spacing:0 8px}
+.rtab th{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);
+  padding:4px 14px;text-align:center}
+.rtab th:first-child{text-align:left}
+.rtab td{background:var(--card);border-top:2px solid var(--hair);border-bottom:2px solid var(--hair);
+  padding:14px 14px;font-size:20px;font-weight:800}
+.rtab td:first-child{text-align:left;border-left:2px solid var(--hair);border-radius:7px 0 0 7px;font-size:18px}
+.rtab td.v1{text-align:center;color:var(--var)}
+.rtab td.now{text-align:center;color:var(--amber);background:var(--wash);border-color:var(--amber)}
+.rtab td:last-child{border-right:2px solid var(--hair);border-radius:0 7px 7px 0}
+.rtab .win{border-right:2px solid var(--amber)!important;border-radius:0 7px 7px 0}
+.rtab .arrow{color:var(--ink2);font-size:16px}
+.repro{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:2px}
+.rp{display:inline-flex;align-items:baseline;gap:9px;border:2px solid var(--rule);border-radius:12px;
+  padding:8px 16px;font-size:18px;font-weight:800;background:var(--card)}
+.rp b{font-size:24px;color:var(--oat)} .rp small{font-size:15px;color:var(--ink2);font-weight:700}
+
 svg{width:100%;height:auto;display:block;overflow:visible}
 svg text{font-family:var(--serif);fill:var(--ink);font-weight:700}
 .tt{font-size:20px;font-weight:800}.td{font-size:16px;font-weight:700}
@@ -120,7 +131,6 @@ svg text{font-family:var(--serif);fill:var(--ink);font-weight:700}
 .w.dash{stroke-dasharray:6 6}
 .breathe{animation:br 2.6s ease-in-out infinite}@keyframes br{0%,100%{opacity:.5}50%{opacity:1}}
 
-/* prefix ruler */
 .cells{display:flex;gap:8px;max-width:640px;margin:0 auto;width:100%}
 .cell{flex:1;height:50px;border:2px solid var(--rule);border-radius:6px;background:var(--card);
   display:grid;place-items:center;cursor:pointer;font-size:16px;font-weight:800;transition:all .2s}
@@ -134,7 +144,6 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
 .ro{display:flex;gap:30px;justify-content:center;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
 .ro b{color:var(--var)}
 
-/* data/test + status */
 .status{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--rule);border-radius:30px;
   padding:8px 17px;font-size:17px;font-weight:800;background:var(--card)}
@@ -183,7 +192,6 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
         <rect class="wv" x="388" y="96" width="150" height="108" rx="10"/><rect class="bx var" x="388" y="96" width="150" height="108" rx="10"/>
         <text class="td f-var" x="406" y="134">stop loop</text><text class="td f-var" x="406" y="158">picks length</text><text class="td" x="406" y="186">z until stop</text>
         <path class="w" d="M538 150 H568"/>
-        <!-- the code, tri-colour -->
         <rect class="bx body" x="576" y="112" width="72" height="44" rx="6"/><text class="td f-body" x="592" y="140">intent</text>
         <rect class="bx oat" x="652" y="112" width="52" height="44" rx="6"/><text class="td" x="668" y="140">·</text>
         <rect class="bx oat" x="708" y="112" width="52" height="44" rx="6"/><text class="td" x="724" y="140">·</text>
@@ -191,7 +199,6 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
         <text class="td f-body" x="576" y="102">shared</text><text class="td f-var" x="764" y="102">on demand</text>
         <text class="tk f-oat" x="620" y="184">ordered</text>
         <path class="w dash" d="M700 156 V196 H120 V214"/>
-        <!-- decode row -->
         <rect class="wo" x="16" y="220" width="220" height="66" rx="9"/><rect class="bx oat" x="16" y="220" width="220" height="66" rx="9"/>
         <text class="td f-oat" x="36" y="248">shared decoder</text><text class="td" x="36" y="272">reads any prefix</text>
         <path class="w" d="M236 253 H266"/>
@@ -215,7 +222,7 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
       <span class="lg body"><i></i>Cross-body</span><span class="lg oat"><i></i>OAT</span><span class="lg var"><i></i>Variable length</span>
     </div>
     <div class="algo">
-      <div class="step body"><div class="tg">Cross&#8209;body</div><div class="tx">Lift the native action to a shared canonical space: <span class="code">u = B<sub>e</sub>(a)</span>.<small>Frames, units and control rate are solved in closed form. Attach a descriptor χ and a channel mask. <span class="why">Why: coordinate transforms are physics, so the model never spends capacity relearning them.</span></small></div></div>
+      <div class="step body"><div class="tg">Cross&#8209;body</div><div class="tx">Lift the native action to a shared canonical space: <span class="code">u = B<sub>e</sub>(a)</span>, 26 channels.<small>Frames, units and control rate are solved in closed form. Attach a descriptor χ and a channel mask. <span class="why">Why: coordinate transforms are physics, so the model never spends capacity relearning them.</span></small></div></div>
       <div class="step oat"><div class="tx" style="grid-column:2"><b>Register encoder + FSQ</b> turn u into discrete codes over <b>one shared vocabulary</b>.<small>OAT's quantizer, unchanged. Nested dropout during training cuts the tail and still forces reconstruction, so early codes carry the coarse motion.</small></div><div class="tg">OAT</div></div>
       <div class="step var"><div class="tg">Variable length</div><div class="tx">Read the codes out as a sequence with a <b>stop symbol</b>, chosen step by step:
         <div class="loop"><span class="kw">for</span> t = 1 … H:&nbsp; score vocabulary + <b>stop</b><br>
@@ -233,7 +240,7 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
     <div class="algo" style="max-width:1000px">
       <div class="step oat"><div class="tg">OAT</div><div class="tx"><b>Shared decoder reads any prefix</b> <span class="code">z<sub>1:k</sub></span> &rarr; canonical motion.<small>Prefix-decodability is exactly what OAT's nested dropout trains, so stopping early still yields a usable coarse action, never garbage.</small></div></div>
       <div class="step var"><div class="tg">Variable length</div><div class="tx"><b>Bounded projection:</b> mask &rarr; clamp &rarr; re-orthogonalise rotation.<small><span class="why">Why: this makes wherever the stop landed a legal command. Any prefix, even a random one, decodes in range.</span></small></div></div>
-      <div class="step body"><div class="tg">Cross&#8209;body</div><div class="tx"><b>Per-body adapter</b> <span class="code">a = A<sub>e</sub>(·)</span>, ≤5% of the weights &rarr; this robot's native command.<small>On an unseen robot, this is the only part retrained.</small></div></div>
+      <div class="step body"><div class="tg">Cross&#8209;body</div><div class="tx"><b>Two-level decode:</b> shared <span class="code">D<sub>shared</sub></span> then a per-body adapter <span class="code">A<sub>e</sub></span>, ≤5% of the weights &rarr; native command.<small>On an unseen robot, only the adapter is retrained.</small></div></div>
     </div>
     <div class="cells" id="cells" role="group" aria-label="Prefix length"></div>
     <canvas id="cv" width="1000" height="180" aria-label="A trajectory reconstructed from the chosen token prefix."></canvas>
@@ -250,47 +257,67 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
       <div class="lterm"><div class="tg" style="--c:var(--ink);color:var(--ink);border-color:var(--ink)">base</div><div class="tx">Reconstruct the action from the full code.<small>The anchor: the tokens must still describe the motion.</small></div></div>
       <div class="lterm var"><div class="tg">Variable length</div><div class="tx">+ a cost for every token emitted.<small><span style="color:var(--var)">Why it is the key term: our first version left tokens free, so 94.7% never stopped. Once a token must pay, the model stops as soon as more tokens stop reducing error.</span></small></div></div>
       <div class="lterm oat"><div class="tg">OAT</div><div class="tx">+ every prefix must reconstruct (nested dropout).<small>Builds the coarse-to-fine order and keeps early stopping usable.</small></div></div>
-      <div class="lterm var"><div class="tg">Variable length</div><div class="tx">+ more tokens should not be worse (soft, verified).<small>The monotone prefix property, checked rather than forced.</small></div></div>
       <div class="lterm body"><div class="tg">Cross&#8209;body</div><div class="tx">Train jointly over bodies + drop the descriptor at random + leave one body out.<small>Descriptor dropout rehearses the zero-shot body; leave-one-out freezes the vocabulary and decoder and adapts only 5%.</small></div></div>
     </div>
     <p class="cap">The stop is non-differentiable, so reconstruction and cost train as a <span class="v">sampled variable-length rollout</span>.</p>
   </section>
 
-  <!-- 5 · DATA / TEST / STATUS -->
-  <section class="s" data-t="Data, test, status">
-    <p class="lead">Train on <span class="b">actions alone</span>. Judge by <span class="v">closed-loop success</span> under a matched policy.</p>
+  <!-- 5 · RESULTS -->
+  <section class="s" data-t="Result: the mechanism works">
+    <p class="lead">SEMA is <span class="a">trained</span> (3 seeds &times; 100M, one shared vocabulary). Every intrinsic target is now met on <span class="b">both robots</span>.</p>
+    <table class="rtab" aria-label="Intrinsic results comparing our first version to SEMA on both embodiments.">
+      <thead><tr><th style="width:44%">Intrinsic target</th><th>First version</th><th></th><th>SEMA now</th></tr></thead>
+      <tbody>
+        <tr><td>Any token stream decodes in range</td><td class="v1">7&ndash;34%</td><td class="arrow">&rarr;</td><td class="now win">100%</td></tr>
+        <tr><td>Codes that choose their own stop</td><td class="v1">5%</td><td class="arrow">&rarr;</td><td class="now win">100%</td></tr>
+        <tr><td>Prefixes that refine in order</td><td class="v1">5&ndash;8%</td><td class="arrow">&rarr;</td><td class="now win">every prefix, both robots</td></tr>
+        <tr><td>One shared vocabulary across robots</td><td class="v1">single robot</td><td class="arrow">&rarr;</td><td class="now win">balanced recon 0.009 / 0.009</td></tr>
+      </tbody>
+    </table>
+    <p class="cap"><span class="a">Reproduction floor, three seeds, exact per-task ordering:</span></p>
+    <div class="repro">
+      <span class="rp"><b>0.677</b><small>LIBERO&nbsp;(Franka)&nbsp;vs&nbsp;0.75</small></span>
+      <span class="rp"><b>0.622</b><small>RoboMimic&nbsp;(Franka)&nbsp;vs&nbsp;0.69</small></span>
+      <span class="rp"><b>0%</b><small>invalid&nbsp;decodes</small></span>
+    </div>
+  </section>
+
+  <!-- 6 · DATA + DECISIVE TEST -->
+  <section class="s" data-t="Data & the decisive test">
+    <p class="lead">Trained on <span class="b">real different robots</span>. The open question: does <span class="a">one shared vocabulary</span> match the per-robot ones?</p>
     <div>
-      <svg viewBox="0 0 1040 210" aria-label="Data feeds tokenizer pre-training on actions only, the tokenizer is frozen into a matched policy, and evaluated by simulator rollout, compared against OAT across three test layers.">
-        <rect class="wb" x="16" y="20" width="228" height="120" rx="10"/><rect class="bx body" x="16" y="20" width="228" height="120" rx="10"/>
-        <text class="tk f-body" x="36" y="48">Training data</text>
-        <text class="td" x="36" y="76">LIBERO-90 · pre-train</text><text class="td" x="36" y="100">LIBERO-10 · downstream</text>
-        <text class="td" x="36" y="124">RoboMimic; then Bridge,</text>
-        <text class="td" x="36" y="146" style="font-size:14px">DROID, RoboTwin (bimanual)</text>
-        <path class="w" d="M244 90 H278"/>
-        <rect class="wo" x="284" y="20" width="196" height="120" rx="10"/><rect class="bx oat" x="284" y="20" width="196" height="120" rx="10"/>
-        <text class="tk f-oat" x="304" y="48">Pre-train</text>
-        <text class="td" x="304" y="82">actions only</text><text class="td" x="304" y="108">no simulator</text><text class="td" x="304" y="134">a small model</text>
-        <path class="w" d="M480 90 H514"/>
-        <rect class="wv" x="520" y="20" width="196" height="120" rx="10"/><rect class="bx var" x="520" y="20" width="196" height="120" rx="10"/>
-        <text class="tk f-var" x="540" y="48">Freeze</text>
-        <text class="td" x="540" y="82">matched policy:</text><text class="td" x="540" y="108">same net, data,</text><text class="td" x="540" y="134">budget for all</text>
-        <path class="w" d="M716 90 H750"/>
-        <rect class="wa" x="756" y="20" width="268" height="120" rx="10"/><rect class="bx" x="756" y="20" width="268" height="120" rx="10" style="stroke:var(--amber);stroke-width:3"/>
-        <text class="tk f-amber" x="776" y="48">Rollout = verdict</text>
-        <text class="td" x="776" y="82">simulator success</text><text class="td" x="776" y="108">three seeds</text>
-        <text class="td" x="776" y="134">vs OAT · binning · VQ</text>
-        <text class="td" x="16" y="184"><tspan class="f-body" font-weight="800">Three test layers:</tspan>&nbsp; rate–distortion &nbsp;·&nbsp; total decodability &nbsp;·&nbsp; leave-one-body-out</text>
+      <svg viewBox="0 0 1040 250" aria-label="Real robots of different kinds are canonicalised into one 26-channel space, encoded by one shared tokenizer, and each drives a matched policy. The running test asks whether the shared vocabulary matches per-robot tokenizers.">
+        <rect class="wb" x="16" y="20" width="238" height="150" rx="10"/><rect class="bx body" x="16" y="20" width="238" height="150" rx="10"/>
+        <text class="tk f-body" x="36" y="48">Real robots</text>
+        <text class="td" x="36" y="78">Franka arm · LIBERO, RoboMimic</text>
+        <text class="td" x="36" y="104">WidowX · mobile manipulator (OXE)</text>
+        <text class="td" x="36" y="130">dual-arm · humanoid (RoboMIND)</text>
+        <text class="td" x="36" y="156" style="font-size:14px">each with its own DoF and rate</text>
+        <path class="w" d="M254 95 H288"/>
+        <rect class="wo" x="294" y="20" width="182" height="150" rx="10"/><rect class="bx oat" x="294" y="20" width="182" height="150" rx="10"/>
+        <text class="tk f-oat" x="314" y="48">Canonical</text>
+        <text class="td" x="314" y="82">26 channels + χ</text><text class="td" x="314" y="110">actions only,</text><text class="td" x="314" y="136">no simulator</text>
+        <path class="w" d="M476 95 H510"/>
+        <rect class="wa" x="516" y="20" width="200" height="150" rx="10"/><rect class="bx" x="516" y="20" width="200" height="150" rx="10" style="stroke:var(--amber);stroke-width:3"/>
+        <text class="tk f-amber" x="536" y="48">One tokenizer</text>
+        <text class="td" x="536" y="82">shared vocabulary</text><text class="td" x="536" y="110">trained: 3 × 100M</text><text class="td f-amber" x="536" y="138">targets all met</text>
+        <path class="w" d="M716 95 H750"/>
+        <rect class="wv" x="756" y="20" width="268" height="150" rx="10"/><rect class="bx var" x="756" y="20" width="268" height="150" rx="10"/>
+        <text class="tk f-var" x="776" y="48">Matched policy</text>
+        <text class="td" x="776" y="82">one policy per robot,</text><text class="td" x="776" y="110">same net and budget</text>
+        <text class="td f-var" x="776" y="138">rollout success = verdict</text>
+        <text class="td" x="16" y="212"><tspan class="f-amber" font-weight="800">The running test:</tspan>&nbsp; shared vocabulary vs per-robot tokenizers &nbsp;(baselines LIBERO 0.677 · RoboMimic 0.622) &nbsp;— plus leave-one-body-out.</text>
       </svg>
     </div>
     <div class="status">
-      <span class="pill"><i style="background:var(--oat)"></i>Reproduced <b>&nbsp;0.72</b>&nbsp;vs 0.75, zero invalid decodes</span>
-      <span class="pill"><i style="background:var(--var)"></i>Now: force order and the stop</span>
-      <span class="pill"><i style="background:var(--body)"></i>Next gate: cross-body transfer ≥ 90%</span>
+      <span class="pill"><i style="background:var(--oat)"></i>Reproduction floor on both robots</span>
+      <span class="pill"><i style="background:var(--amber)"></i>Intrinsic targets all met, trained</span>
+      <span class="pill"><i style="background:var(--body)"></i>Now running: shared vs per-robot success</span>
     </div>
   </section>
 
   <div class="bar" id="bar"></div>
-  <div class="pg"><span class="c" id="c">1 / 5</span>
+  <div class="pg"><span class="c" id="c">1 / 6</span>
     <button id="prev" type="button" aria-label="Previous">&#8592;</button>
     <button id="next" type="button" aria-label="Next">&#8594;</button></div>
   </main>
@@ -320,7 +347,6 @@ document.getElementById("theme").onclick=function(){
   var cur=r.getAttribute("data-theme")||(d?"dark":"light");
   r.setAttribute("data-theme",cur==="dark"?"light":"dark");draw();};
 
-/* prefix ruler */
 var H=8,K=3,cells=document.getElementById("cells"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 for(var q=0;q<H;q++){(function(n){
   var b=document.createElement("button");b.className="cell";b.type="button";

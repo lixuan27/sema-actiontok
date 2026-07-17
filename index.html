@@ -144,6 +144,13 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
 .ro{display:flex;gap:30px;justify-content:center;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
 .ro b{color:var(--var)}
 
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1020px;margin:0 auto;width:100%}
+@media(max-width:700px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{background:var(--card);border:2px solid var(--hair);border-radius:12px;padding:26px 20px;text-align:center}
+.tile.win{border-color:var(--amber);background:var(--wash)}
+.tile .big{font-size:clamp(44px,4.8vw,66px);font-weight:800;line-height:1;color:var(--oat);font-variant-numeric:tabular-nums}
+.tile.win .big{color:var(--amber)}
+.tile .lb{font-size:18px;font-weight:800;color:var(--ink);margin-top:12px;line-height:1.25}
 .status{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--rule);border-radius:30px;
   padding:8px 17px;font-size:17px;font-weight:800;background:var(--card)}
@@ -263,22 +270,14 @@ canvas{display:block;width:100%;max-width:680px;height:auto;margin:0 auto}
   </section>
 
   <!-- 5 · RESULTS -->
-  <section class="s" data-t="Result: the mechanism works">
-    <p class="lead">SEMA is <span class="a">trained</span> (3 seeds &times; 100M, one shared vocabulary). Every intrinsic target is now met on <span class="b">both robots</span>.</p>
-    <table class="rtab" aria-label="Intrinsic results comparing our first version to SEMA on both embodiments.">
-      <thead><tr><th style="width:44%">Intrinsic target</th><th>First version</th><th></th><th>SEMA now</th></tr></thead>
-      <tbody>
-        <tr><td>Any token stream decodes in range</td><td class="v1">7&ndash;34%</td><td class="arrow">&rarr;</td><td class="now win">100%</td></tr>
-        <tr><td>Codes that choose their own stop</td><td class="v1">5%</td><td class="arrow">&rarr;</td><td class="now win">100%</td></tr>
-        <tr><td>Prefixes that refine in order</td><td class="v1">5&ndash;8%</td><td class="arrow">&rarr;</td><td class="now win">every prefix, both robots</td></tr>
-        <tr><td>One shared vocabulary across robots</td><td class="v1">single robot</td><td class="arrow">&rarr;</td><td class="now win">balanced recon 0.009 / 0.009</td></tr>
-      </tbody>
-    </table>
-    <p class="cap"><span class="a">Reproduction floor, three seeds, exact per-task ordering:</span></p>
-    <div class="repro">
-      <span class="rp"><b>0.677</b><small>LIBERO&nbsp;(Franka)&nbsp;vs&nbsp;0.75</small></span>
-      <span class="rp"><b>0.622</b><small>RoboMimic&nbsp;(Franka)&nbsp;vs&nbsp;0.69</small></span>
-      <span class="rp"><b>0%</b><small>invalid&nbsp;decodes</small></span>
+  <section class="s" data-t="Results">
+    <div class="tiles">
+      <div class="tile win"><div class="big">100%</div><div class="lb">token streams decode in range, both robots</div></div>
+      <div class="tile win"><div class="big">100%</div><div class="lb">codes stop on their own</div></div>
+      <div class="tile win"><div class="big">100%</div><div class="lb">prefixes refine in order</div></div>
+      <div class="tile win"><div class="big">0.009</div><div class="lb">balanced reconstruction across robots</div></div>
+      <div class="tile"><div class="big">0.677</div><div class="lb">LIBERO success · Franka</div></div>
+      <div class="tile"><div class="big">0.622</div><div class="lb">RoboMimic success · Franka</div></div>
     </div>
   </section>
 
